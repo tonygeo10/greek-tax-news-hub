@@ -1,0 +1,38 @@
+## 📁 **File 2: package.json**
+
+```json
+{
+  "name": "greek-tax-news-hub",
+  "version": "1.0.0",
+  "description": "A comprehensive RSS news aggregator for Greek tax updates from official sources",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "npx serve .",
+    "build": "echo 'No build process needed for static site'",
+    "deploy": "gh-pages -d ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/greek-tax-news-hub.git"
+  },
+  "keywords": [
+    "greek-tax",
+    "rss",
+    "news-aggregator",
+    "aade",
+    "taxheaven",
+    "forin",
+    "javascript",
+    "github-pages"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/greek-tax-news-hub/issues"
+  },
+  "homepage": "https://yourusername.github.io/greek-tax-news-hub/",
+  "devDependencies": {
+    "gh-pages": "^6.0.0"
+  }
+}
