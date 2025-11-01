@@ -1,17 +1,12 @@
 <!doctype html>
 <html lang="el">
- <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Greek Tax News Hub</title>
-  <script src="/_sdk/element_sdk.js"></script>
-  <script src="/_sdk/data_sdk.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-        body {
-            box-sizing: border-box;
-        }
-        
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greek Tax News Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { box-sizing: border-box; }
         .loading-spinner {
             border: 3px solid #f3f4f6;
             border-top: 3px solid #3b82f6;
@@ -20,46 +15,38 @@
             height: 24px;
             animation: spin 1s linear infinite;
         }
-        
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
         .news-card {
             transition: all 0.3s ease;
             border: 1px solid #e5e7eb;
         }
-        
         .news-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0,0,0,0.15);
             border-color: #3b82f6;
         }
-        
         .fade-in {
             animation: fadeIn 0.5s ease-in;
         }
-        
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
         .line-clamp-2 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        
         .line-clamp-3 {
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        
         .toast {
             position: fixed;
             top: 1rem;
@@ -72,293 +59,258 @@
             transform: translateX(100%);
             transition: transform 0.3s ease;
         }
-        
-        .toast.show {
-            transform: translateX(0);
-        }
-        
+        .toast.show { transform: translateX(0); }
         .toast.success { background-color: #059669; }
         .toast.error { background-color: #dc2626; }
         .toast.warning { background-color: #d97706; }
         .toast.info { background-color: #2563eb; }
     </style>
-  <style>@view-transition { navigation: auto; }</style>
- </head>
- <body class="bg-gray-50 min-h-full"><!-- Header -->
-  <header class="bg-white shadow-sm border-b">
-   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex justify-between items-center py-4">
-     <div class="flex items-center space-x-3">
-      <div class="text-2xl">
-       🇬🇷
-      </div>
-      <div>
-       <h1 id="app-title" class="text-2xl font-bold text-gray-900">Greek Tax News Hub</h1>
-       <p id="app-subtitle" class="text-sm text-gray-600">Κεντρικός Κόμβος Φορολογικών Ειδήσεων</p>
-      </div>
-     </div>
-     <div class="flex items-center space-x-4"><button id="refresh-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"> <span id="refresh-icon">🔄</span> <span id="refresh-button-text">Ανανέωση</span> </button> <button id="manage-feeds-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"> <span>⚙️</span> <span id="manage-button-text">Διαχείριση</span> </button>
-     </div>
-    </div>
-   </div>
-  </header><!-- Main Content -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8"><!-- Quick Add Section -->
-   <section class="bg-white rounded-lg shadow-sm p-6 mb-8">
-    <h2 class="text-lg font-semibold text-gray-900 mb-4">Προσθήκη Πηγών RSS</h2><!-- Popular Feeds -->
-    <div class="mb-6">
-     <h3 class="text-md font-medium text-gray-700 mb-3">Δημοφιλείς Πηγές:</h3>
-     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"><button class="popular-feed-btn bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-3 text-left transition-colors" data-url="https://feeds.feedburner.com/taxheaven/news" data-name="TaxHeaven Νέα" data-category="news">
-       <div class="font-medium text-blue-900">
-        TaxHeaven Νέα
-       </div>
-       <div class="text-sm text-blue-700">
-        Τελευταία φορολογικά νέα
-       </div></button> <button class="popular-feed-btn bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg p-3 text-left transition-colors" data-url="https://www.forin.gr/feed" data-name="Forin.gr" data-category="news">
-       <div class="font-medium text-green-900">
-        Forin.gr
-       </div>
-       <div class="text-sm text-green-700">
-        Φορολογικά &amp; λογιστικά νέα
-       </div></button> <button class="popular-feed-btn bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg p-3 text-left transition-colors" data-url="https://www.capital.gr/rss/tax" data-name="Capital Tax" data-category="news">
-       <div class="font-medium text-purple-900">
-        Capital Tax
-       </div>
-       <div class="text-sm text-purple-700">
-        Φορολογικές ειδήσεις
-       </div></button> <button class="popular-feed-btn bg-orange-50 hover:bg-orange-100 border border-orange-200 rounded-lg p-3 text-left transition-colors" data-url="https://www.kathimerini.gr/rss/economy" data-name="Καθημερινή Οικονομία" data-category="economy">
-       <div class="font-medium text-orange-900">
-        Καθημερινή Οικονομία
-       </div>
-       <div class="text-sm text-orange-700">
-        Οικονομικά νέα
-       </div></button> <button class="popular-feed-btn bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg p-3 text-left transition-colors" data-url="https://www.naftemporiki.gr/rss/economy" data-name="Ναυτεμπορική" data-category="economy">
-       <div class="font-medium text-red-900">
-        Ναυτεμπορική
-       </div>
-       <div class="text-sm text-red-700">
-        Οικονομικές ειδήσεις
-       </div></button> <button class="popular-feed-btn bg-yellow-50 hover:bg-yellow-100 border border-yellow-200 rounded-lg p-3 text-left transition-colors" data-url="https://www.in.gr/rss/economy" data-name="in.gr Οικονομία" data-category="economy">
-       <div class="font-medium text-yellow-900">
-        in.gr Οικονομία
-       </div>
-       <div class="text-sm text-yellow-700">
-        Οικονομικά θέματα
-       </div></button>
-     </div><button id="add-all-popular" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors"> Προσθήκη Όλων των Δημοφιλών Πηγών </button>
-    </div><!-- Manual Add -->
-    <div class="border-t pt-6">
-     <h3 class="text-md font-medium text-gray-700 mb-3">Προσθήκη Προσαρμοσμένης Πηγής:</h3>
-     <div class="flex flex-col sm:flex-row gap-3"><input type="url" id="custom-rss-url" placeholder="https://example.com/rss" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <input type="text" id="custom-rss-name" placeholder="Όνομα πηγής" class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <button id="add-custom-feed" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors"> Προσθήκη </button>
-     </div>
-    </div>
-   </section><!-- Filters -->
-   <section class="bg-white rounded-lg shadow-sm p-6 mb-8">
-    <div class="flex flex-wrap items-center gap-4">
-     <div class="flex items-center space-x-2"><label for="source-filter" class="text-sm font-medium text-gray-700">Πηγή:</label> <select id="source-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">Όλες οι πηγές</option> </select>
-     </div>
-     <div class="flex items-center space-x-2"><label for="category-filter" class="text-sm font-medium text-gray-700">Κατηγορία:</label> <select id="category-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">Όλες οι κατηγορίες</option> <option value="news">Νέα</option> <option value="economy">Οικονομία</option> <option value="custom">Προσαρμοσμένα</option> </select>
-     </div>
-     <div class="flex items-center space-x-2"><label for="status-filter" class="text-sm font-medium text-gray-700">Κατάσταση:</label> <select id="status-filter" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">Όλα</option> <option value="unread">Μη αναγνωσμένα</option> <option value="read">Αναγνωσμένα</option> <option value="bookmarked">Αγαπημένα</option> </select>
-     </div><button id="clear-filters" class="text-sm text-blue-600 hover:text-blue-800 underline"> Καθαρισμός φίλτρων </button>
-    </div>
-   </section><!-- Articles Grid -->
-   <section id="articles-section">
-    <div class="flex justify-between items-center mb-6">
-     <h2 class="text-xl font-semibold text-gray-900">Άρθρα <span id="article-count" class="text-gray-500">(0)</span></h2>
-     <div class="flex items-center space-x-4">
-      <div class="flex items-center space-x-2"><input type="checkbox" id="auto-refresh" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"> <label for="auto-refresh" class="text-sm text-gray-700">Αυτόματη ανανέωση</label>
-      </div><select id="refresh-interval" class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" disabled> <option value="300000">5 λεπτά</option> <option value="600000">10 λεπτά</option> <option value="1800000" selected>30 λεπτά</option> <option value="3600000">1 ώρα</option> </select>
-     </div>
-    </div><!-- Loading State -->
-    <div id="loading-state" class="hidden text-center py-12">
-     <div class="loading-spinner mx-auto mb-4"></div>
-     <p class="text-gray-600">Φόρτωση άρθρων...</p>
-    </div><!-- Empty State -->
-    <div id="empty-state" class="text-center py-12">
-     <div class="text-6xl mb-4">
-      📰
-     </div>
-     <h3 class="text-lg font-medium text-gray-900 mb-2">Δεν υπάρχουν άρθρα</h3>
-     <p class="text-gray-600 mb-6">Προσθέστε πηγές RSS για να ξεκινήσετε να βλέπετε άρθρα</p>
-    </div><!-- Articles Grid -->
-    <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Articles will be inserted here -->
-    </div>
-   </section>
-  </main><!-- Feed Management Modal -->
-  <div id="feed-management-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-   <div class="bg-white rounded-lg max-w-4xl w-full max-h-full overflow-hidden">
-    <div class="flex justify-between items-center p-6 border-b">
-     <h2 class="text-xl font-semibold text-gray-900">Διαχείριση Πηγών RSS</h2><button id="close-modal" class="text-gray-400 hover:text-gray-600 text-2xl">×</button>
-    </div>
-    <div class="p-6 max-h-96 overflow-y-auto">
-     <div id="feeds-list"><!-- Feed items will be inserted here -->
-     </div>
-     <div id="no-feeds-message" class="text-center py-8 text-gray-500">
-      Δεν έχετε προσθέσει πηγές RSS ακόμα
-     </div>
-    </div>
-    <div class="border-t p-6 bg-gray-50">
-     <div class="flex justify-between items-center">
-      <div class="text-sm text-gray-600"><span id="total-feeds">0</span> πηγές • <span id="total-articles">0</span> άρθρα
-      </div>
-      <div class="flex space-x-3"><button id="export-data" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"> Εξαγωγή Δεδομένων </button> <button id="clear-all-data" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"> Καθαρισμός Όλων </button>
-      </div>
-     </div>
-    </div>
-   </div>
-  </div>
-  <script>
-         class RSSParser {
-    static async parseRSSFeed(url) {
-        try {
-            // Try multiple CORS proxies
-            const proxies = [
-                `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-                `https://corsproxy.io/?${encodeURIComponent(url)}`,
-                `https://cors-anywhere.herokuapp.com/${url}`
-            ];
+</head>
+<body class="bg-gray-50 min-h-full">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="text-2xl">🇬🇷</div>
+                    <div>
+                        <h1 id="app-title" class="text-2xl font-bold text-gray-900">Greek Tax News Hub</h1>
+                        <p id="app-subtitle" class="text-sm text-gray-600">Κεντρικός Κόμβος Φορολογικών Ειδήσεων</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="refresh-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                        <span id="refresh-icon">🔄</span>
+                        <span id="refresh-button-text">Ανανέωση</span>
+                    </button>
+                    <button id="manage-feeds-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
+                        <span>⚙️</span>
+                        <span id="manage-button-text">Διαχείριση</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Quick Add Section -->
+        <section class="bg-white rounded-lg shadow-sm p-6 mb-8">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Προσθήκη Πηγών RSS</h2>
             
-            for (const proxyUrl of proxies) {
-                try {
-                    console.log(`Trying proxy: ${proxyUrl}`);
-                    const response = await fetch(proxyUrl);
-                    
-                    if (!response.ok) continue;
-                    
-                    const data = await response.json();
-                    const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(data.contents || data, 'text/xml');
-                    
-                    // Check for parsing errors
-                    const parseError = xmlDoc.querySelector('parsererror');
-                    if (parseError) continue;
-                    
-                    const items = xmlDoc.querySelectorAll('item');
-                    const articles = [];
-                    
-                    items.forEach(item => {
-                        const title = item.querySelector('title')?.textContent?.trim();
-                        const description = item.querySelector('description')?.textContent?.trim();
-                        const link = item.querySelector('link')?.textContent?.trim();
-                        const pubDate = item.querySelector('pubDate')?.textContent?.trim();
+            <!-- Popular Feeds -->
+            <div class="mb-6">
+                <h3 class="text-md font-medium text-gray-700 mb-3">Δημοφιλείς Πηγές:</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <button class="popular-feed-btn bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-3 text-left transition-colors" 
+                            data-url="https://feeds.feedburner.com/taxheaven/news" data-name="TaxHeaven Νέα" data-category="news">
+                        <div class="font-medium text-blue-900">TaxHeaven Νέα</div>
+                        <div class="text-sm text-blue-700">Τελευταία φορολογικά νέα</div>
+                    </button>
+                    <button class="popular-feed-btn bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg p-3 text-left transition-colors" 
+                            data-url="https://www.forin.gr/feed" data-name="Forin.gr" data-category="news">
+                        <div class="font-medium text-green-900">Forin.gr</div>
+                        <div class="text-sm text-green-700">Φορολογικά & λογιστικά νέα</div>
+                    </button>
+                    <button class="popular-feed-btn bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg p-3 text-left transition-colors" 
+                            data-url="https://www.capital.gr/rss/tax" data-name="Capital Tax" data-category="news">
+                        <div class="font-medium text-purple-900">Capital Tax</div>
+                        <div class="text-sm text-purple-700">Φορολογικές ειδήσεις</div>
+                    </button>
+                </div>
+                <button id="add-all-popular" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors">
+                    Προσθήκη Όλων των Δημοφιλών Πηγών
+                </button>
+            </div>
+
+            <!-- Manual Add -->
+            <div class="border-t pt-6">
+                <h3 class="text-md font-medium text-gray-700 mb-3">Προσθήκη Προσαρμοσμένης Πηγής:</h3>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="url" id="custom-rss-url" placeholder="https://example.com/rss" 
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" id="custom-rss-name" placeholder="Όνομα πηγής" 
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <button id="add-custom-feed" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
+                        Προσθήκη
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Articles Grid -->
+        <section id="articles-section">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Άρθρα <span id="article-count" class="text-gray-500">(0)</span></h2>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading-state" class="hidden text-center py-12">
+                <div class="loading-spinner mx-auto mb-4"></div>
+                <p class="text-gray-600">Φόρτωση άρθρων...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center py-12">
+                <div class="text-6xl mb-4">📰</div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">Δεν υπάρχουν άρθρα</h3>
+                <p class="text-gray-600 mb-6">Προσθέστε πηγές RSS για να ξεκινήσετε να βλέπετε άρθρα</p>
+                <button id="add-first-feeds" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors">
+                    Προσθήκη Δημοφιλών Πηγών
+                </button>
+            </div>
+
+            <!-- Articles Grid -->
+            <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Articles will be inserted here -->
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Enhanced RSS Parser with multiple fallback proxies
+        class RSSParser {
+            static async parseRSSFeed(url) {
+                console.log('📡 Fetching RSS from:', url);
+                
+                const proxies = [
+                    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+                    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+                    `https://cors-anywhere.herokuapp.com/${url}`
+                ];
+                
+                for (const proxyUrl of proxies) {
+                    try {
+                        console.log('Trying proxy:', proxyUrl);
+                        const response = await fetch(proxyUrl);
                         
-                        if (title && link) {
-                            articles.push({
-                                title: title,
-                                description: description || '',
-                                source_url: link,
-                                pub_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
-                                read: false,
-                                bookmarked: false,
-                                created_at: new Date().toISOString()
-                            });
+                        if (!response.ok) {
+                            console.log('Proxy response not OK, trying next...');
+                            continue;
                         }
-                    });
-                    
-                    return articles;
-                } catch (error) {
-                    console.log(`Proxy failed, trying next...`);
-                    continue;
-                }
-            }
-            
-            throw new Error('All CORS proxies failed');
-        } catch (error) {
-            console.error('RSS parsing error:', error);
-            throw new Error(`Failed to parse RSS feed: ${error.message}`);
-        }
-    }
-}
-   <script>
-// Temporary SDK fallbacks for testing
-window.elementSdk = window.elementSdk || {
-    init: async () => ({ isOk: true }),
-    config: {}
-};
-window.dataSdk = window.dataSdk || {
-    init: async () => ({ isOk: true }),
-    create: async () => ({ isOk: true }),
-    update: async () => ({ isOk: true }),
-    delete: async () => ({ isOk: true })
-};
-</script>
-  // Enhanced data SDK fallback with localStorage
-if (typeof window.dataSdk === 'undefined') {
-    window.dataSdk = {
-        init: function(dataHandler) {
-            return new Promise((resolve) => {
-                // Load from localStorage
-                const stored = localStorage.getItem('greekTaxNewsData');
-                if (stored) {
-                    const data = JSON.parse(stored);
-                    dataHandler.onDataChanged(data.articles || []);
-                } else {
-                    dataHandler.onDataChanged([]);
-                }
-                resolve({ isOk: true });
-            });
-        },
-        
-        create: function(article) {
-            return new Promise((resolve) => {
-                const stored = localStorage.getItem('greekTaxNewsData');
-                const data = stored ? JSON.parse(stored) : { articles: [], feeds: [] };
-                
-                article.__backendId = Date.now().toString();
-                data.articles.push(article);
-                
-                localStorage.setItem('greekTaxNewsData', JSON.stringify(data));
-                resolve({ isOk: true });
-            });
-        },
-        
-        update: function(article) {
-            return new Promise((resolve) => {
-                const stored = localStorage.getItem('greekTaxNewsData');
-                if (stored) {
-                    const data = JSON.parse(stored);
-                    const index = data.articles.findIndex(a => a.__backendId === article.__backendId);
-                    if (index !== -1) {
-                        data.articles[index] = article;
-                        localStorage.setItem('greekTaxNewsData', JSON.stringify(data));
+                        
+                        const data = await response.json();
+                        const content = data.contents || data;
+                        
+                        if (!content) {
+                            console.log('No content received, trying next proxy...');
+                            continue;
+                        }
+                        
+                        const parser = new DOMParser();
+                        const xmlDoc = parser.parseFromString(content, 'text/xml');
+                        
+                        const parseError = xmlDoc.querySelector('parsererror');
+                        if (parseError) {
+                            console.log('XML parse error, trying next proxy...');
+                            continue;
+                        }
+                        
+                        const items = xmlDoc.querySelectorAll('item');
+                        const articles = [];
+                        
+                        console.log(`Found ${items.length} items in RSS feed`);
+                        
+                        items.forEach(item => {
+                            const title = item.querySelector('title')?.textContent?.trim();
+                            const description = item.querySelector('description')?.textContent?.trim();
+                            const link = item.querySelector('link')?.textContent?.trim();
+                            const pubDate = item.querySelector('pubDate')?.textContent?.trim();
+                            
+                            if (title && link) {
+                                articles.push({
+                                    title: title,
+                                    description: description || 'Δεν υπάρχει περιγραφή',
+                                    source_url: link,
+                                    pub_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+                                    read: false,
+                                    bookmarked: false,
+                                    created_at: new Date().toISOString()
+                                });
+                            }
+                        });
+                        
+                        console.log(`Successfully parsed ${articles.length} articles`);
+                        return articles;
+                        
+                    } catch (error) {
+                        console.log(`Proxy failed: ${error.message}, trying next...`);
+                        continue;
                     }
                 }
-                resolve({ isOk: true });
-            });
-        },
-        
-        delete: function(article) {
-            return new Promise((resolve) => {
-                const stored = localStorage.getItem('greekTaxNewsData');
+                
+                throw new Error('All CORS proxies failed');
+            }
+        }
+
+        // Enhanced Data Storage with localStorage
+        class DataStorage {
+            constructor() {
+                this.storageKey = 'greekTaxNewsData';
+            }
+            
+            async init() {
+                return { isOk: true };
+            }
+            
+            async getAll() {
+                const stored = localStorage.getItem(this.storageKey);
                 if (stored) {
                     const data = JSON.parse(stored);
-                    data.articles = data.articles.filter(a => a.__backendId !== article.__backendId);
-                    localStorage.setItem('greekTaxNewsData', JSON.stringify(data));
+                    return { isOk: true, data: data.articles || [] };
                 }
-                resolve({ isOk: true });
-            });
+                return { isOk: true, data: [] };
+            }
+            
+            async create(article) {
+                const stored = localStorage.getItem(this.storageKey);
+                const data = stored ? JSON.parse(stored) : { articles: [], feeds: [] };
+                
+                // Generate unique ID
+                article.id = 'article_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                data.articles.push(article);
+                
+                localStorage.setItem(this.storageKey, JSON.stringify(data));
+                return { isOk: true };
+            }
+            
+            async update(updatedArticle) {
+                const stored = localStorage.getItem(this.storageKey);
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    const index = data.articles.findIndex(a => a.id === updatedArticle.id);
+                    if (index !== -1) {
+                        data.articles[index] = updatedArticle;
+                        localStorage.setItem(this.storageKey, JSON.stringify(data));
+                    }
+                }
+                return { isOk: true };
+            }
+            
+            async delete(article) {
+                const stored = localStorage.getItem(this.storageKey);
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    data.articles = data.articles.filter(a => a.id !== article.id);
+                    localStorage.setItem(this.storageKey, JSON.stringify(data));
+                }
+                return { isOk: true };
+            }
         }
-    };
-}
 
-        // Greek Tax News Hub - Main Application
+        // Main Application
         class GreekTaxNewsApp {
             constructor() {
                 this.articles = [];
                 this.feeds = new Map();
                 this.filteredArticles = [];
-                this.autoRefreshInterval = null;
                 this.isLoading = false;
-                this.config = {};
+                this.dataStorage = new DataStorage();
                 
-                // Popular Greek RSS feeds
                 this.popularFeeds = [
                     { url: 'https://feeds.feedburner.com/taxheaven/news', name: 'TaxHeaven Νέα', category: 'news' },
                     { url: 'https://www.forin.gr/feed', name: 'Forin.gr', category: 'news' },
-                    { url: 'https://www.capital.gr/rss/tax', name: 'Capital Tax', category: 'news' },
-                    { url: 'https://www.kathimerini.gr/rss/economy', name: 'Καθημερινή Οικονομία', category: 'economy' },
-                    { url: 'https://www.naftemporiki.gr/rss/economy', name: 'Ναυτεμπορική', category: 'economy' },
-                    { url: 'https://www.in.gr/rss/economy', name: 'in.gr Οικονομία', category: 'economy' }
+                    { url: 'https://www.capital.gr/rss/tax', name: 'Capital Tax', category: 'news' }
                 ];
                 
                 this.init();
@@ -367,84 +319,43 @@ if (typeof window.dataSdk === 'undefined') {
             async init() {
                 console.log('🚀 Initializing Greek Tax News Hub...');
                 
-                // Initialize Data SDK
-                const dataHandler = {
-                    onDataChanged: (data) => {
-                        this.articles = data || [];
-                        this.renderArticles();
-                        this.updateFilters();
-                        this.updateStats();
-                    }
-                };
+                // Initialize data storage
+                await this.dataStorage.init();
+                const result = await this.dataStorage.getAll();
+                this.articles = result.data || [];
                 
-                if (window.dataSdk) {
-                    const initResult = await window.dataSdk.init(dataHandler);
-                    if (!initResult.isOk) {
-                        console.error('Failed to initialize Data SDK:', initResult.error);
-                        this.showNotification('Σφάλμα αρχικοποίησης', 'error');
-                    }
-                }
+                // Load saved feeds from localStorage
+                this.loadFeedsFromStorage();
                 
-                // Initialize Element SDK
-                if (window.elementSdk) {
-                    const defaultConfig = {
-                        app_title: "Greek Tax News Hub",
-                        app_subtitle: "Κεντρικός Κόμβος Φορολογικών Ειδήσεων",
-                        refresh_button_text: "Ανανέωση",
-                        manage_button_text: "Διαχείριση"
-                    };
-                    
-                    await window.elementSdk.init({
-                        defaultConfig,
-                        onConfigChange: async (config) => {
-                            this.config = config;
-                            this.updateUI();
-                        },
-                        mapToCapabilities: () => ({
-                            recolorables: [],
-                            borderables: [],
-                            fontEditable: undefined,
-                            fontSizeable: undefined
-                        }),
-                        mapToEditPanelValues: (config) => new Map([
-                            ["app_title", config.app_title || defaultConfig.app_title],
-                            ["app_subtitle", config.app_subtitle || defaultConfig.app_subtitle],
-                            ["refresh_button_text", config.refresh_button_text || defaultConfig.refresh_button_text],
-                            ["manage_button_text", config.manage_button_text || defaultConfig.manage_button_text]
-                        ])
-                    });
-                    
-                    this.config = window.elementSdk.config;
-                }
-                
-                // Setup event listeners
                 this.setupEventListeners();
-                
-                // Initial render
                 this.renderArticles();
-                this.updateFilters();
                 this.updateStats();
-                this.updateUI();
                 
-                console.log('✅ App initialized successfully');
+                console.log('✅ App initialized with', this.articles.length, 'articles');
             }
             
-            updateUI() {
-                const config = this.config;
-                
-                document.getElementById('app-title').textContent = config.app_title || "Greek Tax News Hub";
-                document.getElementById('app-subtitle').textContent = config.app_subtitle || "Κεντρικός Κόμβος Φορολογικών Ειδήσεων";
-                document.getElementById('refresh-button-text').textContent = config.refresh_button_text || "Ανανέωση";
-                document.getElementById('manage-button-text').textContent = config.manage_button_text || "Διαχείριση";
+            loadFeedsFromStorage() {
+                const stored = localStorage.getItem('greekTaxNewsData');
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    if (data.feeds) {
+                        data.feeds.forEach(feed => {
+                            this.feeds.set(feed.url, feed);
+                        });
+                    }
+                }
+            }
+            
+            saveFeedsToStorage() {
+                const stored = localStorage.getItem('greekTaxNewsData');
+                const data = stored ? JSON.parse(stored) : { articles: [], feeds: [] };
+                data.feeds = Array.from(this.feeds.values());
+                localStorage.setItem('greekTaxNewsData', JSON.stringify(data));
             }
             
             setupEventListeners() {
                 // Refresh button
                 document.getElementById('refresh-btn').addEventListener('click', () => this.refreshAllFeeds());
-                
-                // Feed management
-                document.getElementById('manage-feeds-btn').addEventListener('click', () => this.openFeedManagement());
-                document.getElementById('close-modal').addEventListener('click', () => this.closeFeedManagement());
                 
                 // Popular feeds
                 document.querySelectorAll('.popular-feed-btn').forEach(btn => {
@@ -458,34 +369,13 @@ if (typeof window.dataSdk === 'undefined') {
                 
                 // Add all popular feeds
                 document.getElementById('add-all-popular').addEventListener('click', () => this.addAllPopularFeeds());
+                document.getElementById('add-first-feeds').addEventListener('click', () => this.addAllPopularFeeds());
                 
                 // Custom feed
                 document.getElementById('add-custom-feed').addEventListener('click', () => this.addCustomFeed());
-                
-                // Filters
-                document.getElementById('source-filter').addEventListener('change', () => this.applyFilters());
-                document.getElementById('category-filter').addEventListener('change', () => this.applyFilters());
-                document.getElementById('status-filter').addEventListener('change', () => this.applyFilters());
-                document.getElementById('clear-filters').addEventListener('click', () => this.clearFilters());
-                
-                // Auto refresh
-                document.getElementById('auto-refresh').addEventListener('change', (e) => this.toggleAutoRefresh(e.target.checked));
-                document.getElementById('refresh-interval').addEventListener('change', (e) => this.setRefreshInterval(parseInt(e.target.value)));
-                
-                // Modal management
-                document.getElementById('export-data').addEventListener('click', () => this.exportData());
-                document.getElementById('clear-all-data').addEventListener('click', () => this.clearAllData());
-                
-                // Close modal on outside click
-                document.getElementById('feed-management-modal').addEventListener('click', (e) => {
-                    if (e.target.id === 'feed-management-modal') {
-                        this.closeFeedManagement();
-                    }
-                });
             }
             
             async addFeed(url, name, category = 'news') {
-                // Check if feed already exists
                 if (this.feeds.has(url)) {
                     this.showNotification('Η πηγή υπάρχει ήδη!', 'warning');
                     return;
@@ -497,15 +387,14 @@ if (typeof window.dataSdk === 'undefined') {
                     category: category,
                     enabled: true,
                     lastFetch: null,
-                    articleCount: 0,
                     status: 'active'
                 };
                 
                 this.feeds.set(url, feed);
+                this.saveFeedsToStorage();
                 this.showNotification(`Προστέθηκε η πηγή: ${name}`, 'success');
-                this.updateStats();
                 
-                // Fetch articles from new feed
+                // Fetch articles immediately
                 await this.fetchFeedArticles(feed);
             }
             
@@ -521,14 +410,8 @@ if (typeof window.dataSdk === 'undefined') {
                     return;
                 }
                 
-                if (!this.isValidUrl(url)) {
-                    this.showNotification('Παρακαλώ εισάγετε έγκυρο URL', 'error');
-                    return;
-                }
-                
                 await this.addFeed(url, name, 'custom');
                 
-                // Clear inputs
                 urlInput.value = '';
                 nameInput.value = '';
             }
@@ -540,6 +423,8 @@ if (typeof window.dataSdk === 'undefined') {
                     if (!this.feeds.has(feed.url)) {
                         await this.addFeed(feed.url, feed.name, feed.category);
                         addedCount++;
+                        // Small delay between feeds to avoid rate limiting
+                        await new Promise(resolve => setTimeout(resolve, 1000));
                     }
                 }
                 
@@ -578,13 +463,10 @@ if (typeof window.dataSdk === 'undefined') {
                         }
                     } catch (error) {
                         console.error(`Failed to refresh feed ${feed.name}:`, error);
-                        feed.status = 'error';
-                        feed.lastError = error.message;
                     }
                 }
                 
                 this.setLoading(false);
-                this.updateStats();
                 
                 if (totalNewArticles > 0) {
                     this.showNotification(`Βρέθηκαν ${totalNewArticles} νέα άρθρα από ${successCount} πηγές!`, 'success');
@@ -611,98 +493,68 @@ if (typeof window.dataSdk === 'undefined') {
                             a.title === article.title && a.source === article.source
                         );
                         
-                        if (!existingArticle && window.dataSdk) {
-                            // Check limit before creating
-                            if (this.articles.length >= 999) {
-                                this.showNotification('Έχει επιτευχθεί το όριο των 999 άρθρων', 'warning');
-                                break;
-                            }
-                            
-                            const createResult = await window.dataSdk.create(article);
-                            if (createResult.isOk) {
-                                newArticlesCount++;
-                            }
+                        if (!existingArticle) {
+                            await this.dataStorage.create(article);
+                            this.articles.push(article);
+                            newArticlesCount++;
                         }
                     }
                     
-                    // Update feed status
                     feed.lastFetch = new Date().toISOString();
-                    feed.articleCount = articles.length;
-                    feed.status = 'active';
-                    feed.lastError = null;
-                    
                     console.log(`✅ Added ${newArticlesCount} new articles from ${feed.name}`);
+                    
+                    this.renderArticles();
                     return newArticlesCount;
                     
                 } catch (error) {
                     console.error(`❌ Failed to fetch from ${feed.name}:`, error);
-                    feed.status = 'error';
-                    feed.lastError = error.message;
-                    throw error;
+                    this.showNotification(`Σφάλμα στη φόρτωση από ${feed.name}`, 'error');
+                    return 0;
                 }
             }
             
             renderArticles() {
                 const grid = document.getElementById('articles-grid');
                 const emptyState = document.getElementById('empty-state');
+                const articleCount = document.getElementById('article-count');
                 
-                // Apply current filters
-                this.applyFilters();
-                
-                if (this.filteredArticles.length === 0) {
+                if (this.articles.length === 0) {
                     grid.innerHTML = '';
                     emptyState.classList.remove('hidden');
+                    articleCount.textContent = '(0)';
                     return;
                 }
                 
                 emptyState.classList.add('hidden');
                 
-                // Sort articles by date (newest first)
-                this.filteredArticles.sort((a, b) => new Date(b.pub_date) - new Date(a.pub_date));
+                // Sort by date (newest first)
+                const sortedArticles = [...this.articles].sort((a, b) => 
+                    new Date(b.pub_date) - new Date(a.pub_date)
+                );
                 
-                grid.innerHTML = this.filteredArticles.map(article => this.createArticleCard(article)).join('');
+                grid.innerHTML = sortedArticles.map(article => this.createArticleCard(article)).join('');
+                articleCount.textContent = `(${sortedArticles.length})`;
                 
-                // Add event listeners to article cards
                 this.setupArticleEventListeners();
-                
-                // Update article count
-                document.getElementById('article-count').textContent = `(${this.filteredArticles.length})`;
             }
             
             createArticleCard(article) {
                 const publishDate = new Date(article.pub_date).toLocaleDateString('el-GR', {
                     year: 'numeric',
                     month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
+                    day: 'numeric'
                 });
                 
-                const categoryColors = {
-                    news: 'bg-blue-100 text-blue-800',
-                    economy: 'bg-green-100 text-green-800',
-                    custom: 'bg-gray-100 text-gray-800'
-                };
-                
-                const categoryColor = categoryColors[article.category] || categoryColors.custom;
-                
                 return `
-                    <article class="news-card bg-white rounded-lg shadow-sm p-6 fade-in ${article.read ? 'opacity-75' : ''}" 
-                             data-article-id="${article.__backendId}">
+                    <article class="news-card bg-white rounded-lg shadow-sm p-6 fade-in">
                         <div class="flex justify-between items-start mb-3">
-                            <div class="flex items-center space-x-2">
-                                <span class="px-2 py-1 text-xs font-medium rounded-full ${categoryColor}">${article.source}</span>
-                                ${article.bookmarked ? '<span class="text-yellow-500">⭐</span>' : ''}
-                                ${article.read ? '<span class="text-green-500 text-sm">✓</span>' : ''}
-                            </div>
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                                ${article.source}
+                            </span>
                             <div class="flex space-x-2">
                                 <button class="bookmark-btn text-gray-400 hover:text-yellow-500 transition-colors" 
-                                        data-article-id="${article.__backendId}" title="Προσθήκη στα αγαπημένα">
+                                        data-article-id="${article.id}" title="Προσθήκη στα αγαπημένα">
                                     ${article.bookmarked ? '⭐' : '☆'}
-                                </button>
-                                <button class="read-btn text-gray-400 hover:text-green-500 transition-colors" 
-                                        data-article-id="${article.__backendId}" title="Σήμανση ως αναγνωσμένο">
-                                    ${article.read ? '✓' : '○'}
                                 </button>
                             </div>
                         </div>
@@ -714,9 +566,7 @@ if (typeof window.dataSdk === 'undefined') {
                             </a>
                         </h3>
                         
-                        ${article.description ? `
-                            <p class="text-gray-600 text-sm mb-4 line-clamp-3">${article.description}</p>
-                        ` : ''}
+                        <p class="text-gray-600 text-sm mb-4 line-clamp-3">${article.description}</p>
                         
                         <div class="flex justify-between items-center text-sm text-gray-500">
                             <time datetime="${article.pub_date}">${publishDate}</time>
@@ -730,282 +580,21 @@ if (typeof window.dataSdk === 'undefined') {
             }
             
             setupArticleEventListeners() {
-                // Bookmark buttons
                 document.querySelectorAll('.bookmark-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
+                    btn.addEventListener('click', async (e) => {
                         e.preventDefault();
                         const articleId = e.target.dataset.articleId;
-                        this.toggleBookmark(articleId);
-                    });
-                });
-                
-                // Read buttons
-                document.querySelectorAll('.read-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const articleId = e.target.dataset.articleId;
-                        this.toggleRead(articleId);
-                    });
-                });
-                
-                // Article links (mark as read when clicked)
-                document.querySelectorAll('.news-card a[href]').forEach(link => {
-                    link.addEventListener('click', (e) => {
-                        const card = e.target.closest('.news-card');
-                        const articleId = card.dataset.articleId;
-                        this.markAsRead(articleId);
-                    });
-                });
-            }
-            
-            async toggleBookmark(articleId) {
-                const article = this.articles.find(a => a.__backendId === articleId);
-                if (article && window.dataSdk) {
-                    article.bookmarked = !article.bookmarked;
-                    const updateResult = await window.dataSdk.update(article);
-                    
-                    if (updateResult.isOk) {
-                        const action = article.bookmarked ? 'προστέθηκε στα αγαπημένα' : 'αφαιρέθηκε από τα αγαπημένα';
-                        this.showNotification(`Το άρθρο ${action}`, 'success');
-                    }
-                }
-            }
-            
-            async toggleRead(articleId) {
-                const article = this.articles.find(a => a.__backendId === articleId);
-                if (article && window.dataSdk) {
-                    article.read = !article.read;
-                    await window.dataSdk.update(article);
-                }
-            }
-            
-            async markAsRead(articleId) {
-                const article = this.articles.find(a => a.__backendId === articleId);
-                if (article && !article.read && window.dataSdk) {
-                    article.read = true;
-                    await window.dataSdk.update(article);
-                }
-            }
-            
-            applyFilters() {
-                const sourceFilter = document.getElementById('source-filter').value;
-                const categoryFilter = document.getElementById('category-filter').value;
-                const statusFilter = document.getElementById('status-filter').value;
-                
-                this.filteredArticles = this.articles.filter(article => {
-                    // Source filter
-                    if (sourceFilter && article.source !== sourceFilter) return false;
-                    
-                    // Category filter
-                    if (categoryFilter && article.category !== categoryFilter) return false;
-                    
-                    // Status filter
-                    if (statusFilter === 'read' && !article.read) return false;
-                    if (statusFilter === 'unread' && article.read) return false;
-                    if (statusFilter === 'bookmarked' && !article.bookmarked) return false;
-                    
-                    return true;
-                });
-            }
-            
-            clearFilters() {
-                document.getElementById('source-filter').value = '';
-                document.getElementById('category-filter').value = '';
-                document.getElementById('status-filter').value = '';
-                this.renderArticles();
-            }
-            
-            updateFilters() {
-                const sourceFilter = document.getElementById('source-filter');
-                const sources = [...new Set(this.articles.map(a => a.source))].sort();
-                
-                // Clear existing options (except "All sources")
-                sourceFilter.innerHTML = '<option value="">Όλες οι πηγές</option>';
-                
-                // Add source options
-                sources.forEach(source => {
-                    const option = document.createElement('option');
-                    option.value = source;
-                    option.textContent = source;
-                    sourceFilter.appendChild(option);
-                });
-            }
-            
-            updateStats() {
-                const totalFeeds = this.feeds.size;
-                const totalArticles = this.articles.length;
-                
-                document.getElementById('total-feeds').textContent = totalFeeds;
-                document.getElementById('total-articles').textContent = totalArticles;
-            }
-            
-            openFeedManagement() {
-                this.renderFeedManagement();
-                document.getElementById('feed-management-modal').classList.remove('hidden');
-            }
-            
-            closeFeedManagement() {
-                document.getElementById('feed-management-modal').classList.add('hidden');
-            }
-            
-            renderFeedManagement() {
-                const feedsList = document.getElementById('feeds-list');
-                const noFeedsMessage = document.getElementById('no-feeds-message');
-                
-                if (this.feeds.size === 0) {
-                    feedsList.innerHTML = '';
-                    noFeedsMessage.classList.remove('hidden');
-                    return;
-                }
-                
-                noFeedsMessage.classList.add('hidden');
-                
-                const feedsArray = Array.from(this.feeds.values());
-                feedsList.innerHTML = feedsArray.map(feed => this.createFeedItem(feed)).join('');
-            }
-            
-            createFeedItem(feed) {
-                const lastFetch = feed.lastFetch ? 
-                    new Date(feed.lastFetch).toLocaleDateString('el-GR', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    }) : 'Ποτέ';
-                
-                const statusColors = {
-                    active: 'text-green-600',
-                    error: 'text-red-600',
-                    disabled: 'text-gray-400'
-                };
-                
-                const statusColor = statusColors[feed.status] || statusColors.active;
-                
-                return `
-                    <div class="feed-item border border-gray-200 rounded-lg p-4 mb-4" data-feed-url="${feed.url}">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-3 mb-2">
-                                    <h3 class="font-medium text-gray-900">${feed.name}</h3>
-                                    <span class="text-sm ${statusColor}">●</span>
-                                </div>
-                                
-                                <p class="text-sm text-gray-600 mb-2">${feed.url}</p>
-                                
-                                <div class="flex items-center space-x-4 text-xs text-gray-500">
-                                    <span>Κατηγορία: ${feed.category}</span>
-                                    <span>Άρθρα: ${feed.articleCount || 0}</span>
-                                    <span>Τελευταία ανανέωση: ${lastFetch}</span>
-                                </div>
-                                
-                                ${feed.lastError ? `
-                                    <div class="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded">
-                                        Σφάλμα: ${feed.lastError}
-                                    </div>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-            
-            toggleAutoRefresh(enabled) {
-                const intervalSelect = document.getElementById('refresh-interval');
-                intervalSelect.disabled = !enabled;
-                
-                if (enabled) {
-                    const interval = parseInt(intervalSelect.value);
-                    this.setRefreshInterval(interval);
-                    this.showNotification('Αυτόματη ανανέωση ενεργοποιήθηκε', 'success');
-                } else {
-                    if (this.autoRefreshInterval) {
-                        clearInterval(this.autoRefreshInterval);
-                        this.autoRefreshInterval = null;
-                    }
-                    this.showNotification('Αυτόματη ανανέωση απενεργοποιήθηκε', 'info');
-                }
-            }
-            
-            setRefreshInterval(interval) {
-                if (this.autoRefreshInterval) {
-                    clearInterval(this.autoRefreshInterval);
-                }
-                
-                this.autoRefreshInterval = setInterval(() => {
-                    console.log('🔄 Auto-refreshing feeds...');
-                    this.refreshAllFeeds();
-                }, interval);
-            }
-            
-            exportData() {
-                const data = {
-                    articles: this.articles,
-                    feeds: Array.from(this.feeds.entries()),
-                    exportDate: new Date().toISOString()
-                };
-                
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `greek-tax-news-backup-${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                this.showNotification('Τα δεδομένα εξήχθησαν επιτυχώς', 'success');
-            }
-            
-            clearAllData() {
-                // Create inline confirmation in modal
-                const modalContent = document.querySelector('#feed-management-modal .p-6');
-                const originalContent = modalContent.innerHTML;
-                
-                modalContent.innerHTML = `
-                    <div class="text-center py-8">
-                        <div class="text-6xl mb-4">⚠️</div>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Καθαρισμός Όλων των Δεδομένων</h3>
-                        <p class="text-gray-600 mb-6">
-                            Αυτή η ενέργεια θα διαγράψει ΌΛΑ τα άρθρα και τις πηγές RSS.
-                            <br><strong>Αυτή η ενέργεια δεν μπορεί να αναιρεθεί!</strong>
-                        </p>
-                        <div class="space-x-4">
-                            <button id="confirm-clear-all" class="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg">
-                                Ναι, διαγραφή όλων
-                            </button>
-                            <button id="cancel-clear-all" class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg">
-                                Ακύρωση
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                // Handle confirmation
-                document.getElementById('confirm-clear-all').addEventListener('click', async () => {
-                    // Clear all articles from Data SDK
-                    if (window.dataSdk) {
-                        for (const article of this.articles) {
-                            await window.dataSdk.delete(article);
+                        const article = this.articles.find(a => a.id === articleId);
+                        if (article) {
+                            article.bookmarked = !article.bookmarked;
+                            await this.dataStorage.update(article);
+                            this.renderArticles();
+                            this.showNotification(
+                                article.bookmarked ? 'Προστέθηκε στα αγαπημένα' : 'Αφαιρέθηκε από τα αγαπημένα', 
+                                'success'
+                            );
                         }
-                    }
-                    
-                    this.articles = [];
-                    this.feeds.clear();
-                    this.filteredArticles = [];
-                    
-                    this.showNotification('Όλα τα δεδομένα διαγράφηκαν', 'success');
-                    this.closeFeedManagement();
-                    this.renderArticles();
-                    this.updateFilters();
-                    this.updateStats();
-                });
-                
-                // Handle cancellation
-                document.getElementById('cancel-clear-all').addEventListener('click', () => {
-                    modalContent.innerHTML = originalContent;
-                    this.renderFeedManagement();
+                    });
                 });
             }
             
@@ -1028,20 +617,21 @@ if (typeof window.dataSdk === 'undefined') {
                 }
             }
             
+            updateStats() {
+                // Update any statistics if needed
+            }
+            
             showNotification(message, type = 'info') {
-                // Create toast notification
                 const toast = document.createElement('div');
                 toast.className = `toast ${type}`;
                 toast.textContent = message;
                 
                 document.body.appendChild(toast);
                 
-                // Animate in
                 setTimeout(() => {
                     toast.classList.add('show');
                 }, 100);
                 
-                // Animate out and remove
                 setTimeout(() => {
                     toast.classList.remove('show');
                     setTimeout(() => {
@@ -1051,34 +641,12 @@ if (typeof window.dataSdk === 'undefined') {
                     }, 300);
                 }, 3000);
             }
-            
-            // Utility methods
-            isValidUrl(string) {
-                try {
-                    new URL(string);
-                    return true;
-                } catch (_) {
-                    return false;
-                }
-            }
         }
-        // In the fetchFeedArticles method, add logging:
-async fetchFeedArticles(feed) {
-    try {
-        console.log(`🔄 Fetching articles from: ${feed.name} (${feed.url})`);
         
-        const articles = await RSSParser.parseRSSFeed(feed.url);
-        console.log(`📰 Found ${articles.length} articles from ${feed.name}`);
-        
-        let newArticlesCount = 0;
-        // ... rest of the method
-    } catch (error) {
-        console.error(`❌ Failed to fetch from ${feed.name}:`, error);
-        // ... rest of error handling
-        // Initialize the app when DOM is loaded
+        // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
             window.greekTaxNewsApp = new GreekTaxNewsApp();
         });
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'997d01b0e5526f5f',t:'MTc2MjAxNzAzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
