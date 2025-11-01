@@ -1062,7 +1062,19 @@ if (typeof window.dataSdk === 'undefined') {
                 }
             }
         }
+        // In the fetchFeedArticles method, add logging:
+async fetchFeedArticles(feed) {
+    try {
+        console.log(`🔄 Fetching articles from: ${feed.name} (${feed.url})`);
         
+        const articles = await RSSParser.parseRSSFeed(feed.url);
+        console.log(`📰 Found ${articles.length} articles from ${feed.name}`);
+        
+        let newArticlesCount = 0;
+        // ... rest of the method
+    } catch (error) {
+        console.error(`❌ Failed to fetch from ${feed.name}:`, error);
+        // ... rest of error handling
         // Initialize the app when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
             window.greekTaxNewsApp = new GreekTaxNewsApp();
