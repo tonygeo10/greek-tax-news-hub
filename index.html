@@ -259,6 +259,19 @@
                 }
             }
         }
+   <script>
+// Temporary SDK fallbacks for testing
+window.elementSdk = window.elementSdk || {
+    init: async () => ({ isOk: true }),
+    config: {}
+};
+window.dataSdk = window.dataSdk || {
+    init: async () => ({ isOk: true }),
+    create: async () => ({ isOk: true }),
+    update: async () => ({ isOk: true }),
+    delete: async () => ({ isOk: true })
+};
+</script>
 
         // Greek Tax News Hub - Main Application
         class GreekTaxNewsApp {
