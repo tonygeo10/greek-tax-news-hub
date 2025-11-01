@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Greek Tax News Hub</title>
+    <!-- Use Tailwind CSS CDN for now -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { box-sizing: border-box; }
@@ -66,7 +67,7 @@
         .toast.info { background-color: #2563eb; }
     </style>
 </head>
-<body class="bg-gray-50 min-h-full">
+<body class="bg-gray-50 min-h-screen">
     <!-- Header -->
     <header class="bg-white shadow-sm border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -74,18 +75,18 @@
                 <div class="flex items-center space-x-3">
                     <div class="text-2xl">🇬🇷</div>
                     <div>
-                        <h1 id="app-title" class="text-2xl font-bold text-gray-900">Greek Tax News Hub</h1>
-                        <p id="app-subtitle" class="text-sm text-gray-600">Κεντρικός Κόμβος Φορολογικών Ειδήσεων</p>
+                        <h1 class="text-2xl font-bold text-gray-900">Greek Tax News Hub</h1>
+                        <p class="text-sm text-gray-600">Κεντρικός Κόμβος Φορολογικών Ειδήσεων</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
                     <button id="refresh-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
                         <span id="refresh-icon">🔄</span>
-                        <span id="refresh-button-text">Ανανέωση</span>
+                        <span>Ανανέωση</span>
                     </button>
                     <button id="manage-feeds-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
                         <span>⚙️</span>
-                        <span id="manage-button-text">Διαχείριση</span>
+                        <span>Διαχείριση</span>
                     </button>
                 </div>
             </div>
@@ -175,8 +176,7 @@
                 
                 const proxies = [
                     `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-                    `https://corsproxy.io/?${encodeURIComponent(url)}`,
-                    `https://cors-anywhere.herokuapp.com/${url}`
+                    `https://corsproxy.io/?${encodeURIComponent(url)}`
                 ];
                 
                 for (const proxyUrl of proxies) {
