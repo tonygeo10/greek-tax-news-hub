@@ -74,7 +74,7 @@
                     <div class="text-2xl">🇬🇷</div>
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900">Greek Tax News Hub</h1>
-                        <p class="text-sm text-gray-600">Κεντρικός Κόμβος Φορολογικών Ειδήσεων</p>
+                        <p class="text-sm text-gray-600">Ειδήσεις ΑΑΔΕ & Φορολογικά Νέα</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -89,103 +89,135 @@
 
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <section class="bg-white rounded-lg shadow-sm p-6 mb-8">
-            <h2 class="text-lg font-semibold text-gray-900 mb-4">Προσθήκη Πηγών RSS</h2>
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Πηγές RSS ΑΑΔΕ</h2>
             
             <div class="mb-6">
-                <h3 class="text-md font-medium text-gray-700 mb-3">Δημοφιλείς Πηγές:</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <h3 class="text-md font-medium text-gray-700 mb-3">Επίσημες Πηγές ΑΑΔΕ:</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3">
                     <button class="popular-feed-btn bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-3 text-left transition-colors" 
-                            data-url="https://feeds.feedburner.com/taxheaven/news" data-name="TaxHeaven Νέα" data-category="news">
-                        <div class="font-medium text-blue-900">TaxHeaven Νέα</div>
-                        <div class="text-sm text-blue-700">Τελευταία φορολογικά νέα</div>
+                            data-url="https://www.aade.gr/deltia-typoy-anakoinoseis?format=rss" data-name="ΑΑΔΕ - Δελτία Τύπου" data-category="official">
+                        <div class="font-medium text-blue-900">ΑΑΔΕ - Δελτία Τύπου</div>
+                        <div class="text-sm text-blue-700">Επίσημες ανακοινώσεις & δελτία τύπου</div>
                     </button>
                     <button class="popular-feed-btn bg-green-50 hover:bg-green-100 border border-green-200 rounded-lg p-3 text-left transition-colors" 
-                            data-url="https://www.forin.gr/feed" data-name="Forin.gr" data-category="news">
-                        <div class="font-medium text-green-900">Forin.gr</div>
-                        <div class="text-sm text-green-700">Φορολογικά & λογιστικά νέα</div>
-                    </button>
-                    <button class="popular-feed-btn bg-purple-50 hover:bg-purple-100 border border-purple-200 rounded-lg p-3 text-left transition-colors" 
-                            data-url="https://www.capital.gr/rss/tax" data-name="Capital Tax" data-category="news">
-                        <div class="font-medium text-purple-900">Capital Tax</div>
-                        <div class="text-sm text-purple-700">Φορολογικές ειδήσεις</div>
+                            data-url="https://www.aade.gr/nea-kai-enimerosi?format=rss" data-name="ΑΑΔΕ - Νέα & Ενημέρωση" data-category="official">
+                        <div class="font-medium text-green-900">ΑΑΔΕ - Νέα & Ενημέρωση</div>
+                        <div class="text-sm text-green-700">Τελευταία νέα και ενημερώσεις</div>
                     </button>
                 </div>
                 <button id="add-all-popular" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg transition-colors">
-                    Προσθήκη Όλων των Δημοφιλών Πηγών
+                    Προσθήκη Όλων των Πηγών ΑΑΔΕ
                 </button>
+            </div>
+
+            <!-- Manual Add -->
+            <div class="border-t pt-6">
+                <h3 class="text-md font-medium text-gray-700 mb-3">Προσθήκη Άλλης Πηγής ΑΑΔΕ:</h3>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <input type="url" id="custom-rss-url" placeholder="https://www.aade.gr/...?format=rss" 
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <input type="text" id="custom-rss-name" placeholder="Όνομα πηγής" 
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <button id="add-custom-feed" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
+                        Προσθήκη
+                    </button>
+                </div>
+                <p class="text-sm text-gray-500 mt-2">Συμβουλή: Οι πηγές ΑΑΔΕ λήγουν σε ?format=rss</p>
             </div>
         </section>
 
+        <!-- Articles Grid -->
         <section id="articles-section">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-semibold text-gray-900">Άρθρα <span id="article-count" class="text-gray-500">(0)</span></h2>
             </div>
 
+            <!-- Loading State -->
             <div id="loading-state" class="hidden text-center py-12">
                 <div class="loading-spinner mx-auto mb-4"></div>
-                <p class="text-gray-600">Φόρτωση άρθρων...</p>
+                <p class="text-gray-600">Φόρτωση ειδήσεων από ΑΑΔΕ...</p>
             </div>
 
+            <!-- Empty State -->
             <div id="empty-state" class="text-center py-12">
-                <div class="text-6xl mb-4">📰</div>
+                <div class="text-6xl mb-4">🏛️</div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Δεν υπάρχουν άρθρα</h3>
-                <p class="text-gray-600 mb-6">Προσθέστε πηγές RSS για να ξεκινήσετε να βλέπετε άρθρα</p>
+                <p class="text-gray-600 mb-6">Προσθέστε πηγές RSS από την ΑΑΔΕ για να ξεκινήσετε</p>
                 <button id="add-first-feeds" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors">
-                    Προσθήκη Δημοφιλών Πηγών
+                    Προσθήκη Πηγών ΑΑΔΕ
                 </button>
             </div>
 
+            <!-- Articles Grid -->
             <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Articles will be inserted here -->
             </div>
         </section>
     </main>
 
     <script>
-        // SIMPLE RSS Parser that actually works
+        // Simple RSS Parser for AADE feeds
         class RSSParser {
             static async parseRSSFeed(url, name) {
-                console.log('📡 Fetching RSS from:', name, url);
-                
-                // Use RSS2JSON API - it's specifically designed for RSS feeds
-                const rss2jsonUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`;
+                console.log('📡 Fetching AADE RSS from:', name);
                 
                 try {
-                    console.log('Using RSS2JSON API...');
-                    const response = await fetch(rss2jsonUrl);
+                    // AADE feeds should work directly without CORS issues
+                    const response = await fetch(url);
                     
                     if (!response.ok) {
-                        throw new Error(`RSS2JSON API error: ${response.status}`);
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
                     
-                    const data = await response.json();
+                    const text = await response.text();
+                    const parser = new DOMParser();
+                    const xmlDoc = parser.parseFromString(text, 'text/xml');
                     
-                    if (data.status !== 'ok') {
-                        throw new Error(`RSS2JSON error: ${data.message}`);
+                    // Check for parsing errors
+                    const parseError = xmlDoc.querySelector('parsererror');
+                    if (parseError) {
+                        throw new Error('Invalid XML format from AADE feed');
                     }
                     
-                    console.log(`✅ Successfully fetched ${data.items.length} articles from ${name}`);
+                    // Parse RSS items
+                    const items = xmlDoc.querySelectorAll('item');
+                    const articles = [];
                     
-                    // Format the articles
-                    return data.items.map(item => ({
-                        title: item.title || 'Χωρίς τίτλο',
-                        description: item.description || item.content || 'Δεν υπάρχει περιγραφή',
-                        source_url: item.link || '#',
-                        pub_date: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
-                        read: false,
-                        bookmarked: false,
-                        created_at: new Date().toISOString(),
-                        source: name,
-                        category: 'news'
-                    }));
+                    console.log(`Found ${items.length} items in AADE RSS feed`);
+                    
+                    items.forEach(item => {
+                        const title = item.querySelector('title')?.textContent?.trim();
+                        const description = item.querySelector('description')?.textContent?.trim();
+                        const link = item.querySelector('link')?.textContent?.trim();
+                        const pubDate = item.querySelector('pubDate')?.textContent?.trim();
+                        
+                        if (title && link) {
+                            articles.push({
+                                title: title,
+                                description: description || 'Δεν υπάρχει περιγραφή',
+                                source_url: link,
+                                pub_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+                                read: false,
+                                bookmarked: false,
+                                created_at: new Date().toISOString(),
+                                source: name,
+                                category: 'official',
+                                feed_id: url
+                            });
+                        }
+                    });
+                    
+                    console.log(`✅ Successfully parsed ${articles.length} articles from ${name}`);
+                    return articles;
                     
                 } catch (error) {
-                    console.error('❌ RSS2JSON failed:', error);
+                    console.error(`❌ Failed to fetch from AADE ${name}:`, error);
                     
-                    // Fallback: Try allorigins with XML parsing
+                    // Fallback: Try with CORS proxy for AADE
                     try {
-                        console.log('Trying AllOrigins fallback...');
-                        const allOriginsUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-                        const response = await fetch(allOriginsUrl);
+                        console.log('Trying CORS proxy for AADE...');
+                        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                        const response = await fetch(proxyUrl);
                         
                         if (response.ok) {
                             const data = await response.json();
@@ -210,7 +242,8 @@
                                         bookmarked: false,
                                         created_at: new Date().toISOString(),
                                         source: name,
-                                        category: 'news'
+                                        category: 'official',
+                                        feed_id: url
                                     });
                                 }
                             });
@@ -222,7 +255,7 @@
                         console.error('❌ Fallback also failed:', fallbackError);
                     }
                     
-                    throw new Error(`Failed to fetch from ${name}`);
+                    throw new Error(`Δεν ήταν δυνατή η φόρτωση από ${name}`);
                 }
             }
         }
@@ -269,6 +302,16 @@
                 }
                 return { isOk: true };
             }
+            
+            async delete(article) {
+                const stored = localStorage.getItem(this.storageKey);
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    data.articles = data.articles.filter(a => a.id !== article.id);
+                    localStorage.setItem(this.storageKey, JSON.stringify(data));
+                }
+                return { isOk: true };
+            }
         }
 
         // Main Application
@@ -279,17 +322,16 @@
                 this.isLoading = false;
                 this.dataStorage = new DataStorage();
                 
-                this.popularFeeds = [
-                    { url: 'https://feeds.feedburner.com/taxheaven/news', name: 'TaxHeaven Νέα', category: 'news' },
-                    { url: 'https://www.forin.gr/feed', name: 'Forin.gr', category: 'news' },
-                    { url: 'https://www.capital.gr/rss/tax', name: 'Capital Tax', category: 'news' }
+                this.aadeFeeds = [
+                    { url: 'https://www.aade.gr/deltia-typoy-anakoinoseis?format=rss', name: 'ΑΑΔΕ - Δελτία Τύπου', category: 'official' },
+                    { url: 'https://www.aade.gr/nea-kai-enimerosi?format=rss', name: 'ΑΑΔΕ - Νέα & Ενημέρωση', category: 'official' }
                 ];
                 
                 this.init();
             }
             
             async init() {
-                console.log('🚀 Initializing Greek Tax News Hub...');
+                console.log('🚀 Initializing Greek Tax News Hub for AADE...');
                 
                 await this.dataStorage.init();
                 const result = await this.dataStorage.getAll();
@@ -333,13 +375,15 @@
                     });
                 });
                 
-                document.getElementById('add-all-popular').addEventListener('click', () => this.addAllPopularFeeds());
-                document.getElementById('add-first-feeds').addEventListener('click', () => this.addAllPopularFeeds());
+                document.getElementById('add-all-popular').addEventListener('click', () => this.addAllAADEFeeds());
+                document.getElementById('add-first-feeds').addEventListener('click', () => this.addAllAADEFeeds());
+                
+                document.getElementById('add-custom-feed').addEventListener('click', () => this.addCustomFeed());
             }
             
-            async addFeed(url, name, category = 'news') {
+            async addFeed(url, name, category = 'official') {
                 if (this.feeds.has(url)) {
-                    this.showNotification('Η πηγή υπάρχει ήδη!', 'warning');
+                    this.showNotification('Η πηγή ΑΑΔΕ υπάρχει ήδη!', 'warning');
                     return;
                 }
                 
@@ -354,30 +398,51 @@
                 
                 this.feeds.set(url, feed);
                 this.saveFeedsToStorage();
-                this.showNotification(`Προστέθηκε η πηγή: ${name}`, 'success');
+                this.showNotification(`Προστέθηκε πηγή ΑΑΔΕ: ${name}`, 'success');
                 
                 await this.fetchFeedArticles(feed);
             }
             
-            async addAllPopularFeeds() {
+            async addCustomFeed() {
+                const urlInput = document.getElementById('custom-rss-url');
+                const nameInput = document.getElementById('custom-rss-name');
+                
+                const url = urlInput.value.trim();
+                const name = nameInput.value.trim();
+                
+                if (!url || !name) {
+                    this.showNotification('Παρακαλώ συμπληρώστε URL και όνομα πηγής ΑΑΔΕ', 'error');
+                    return;
+                }
+                
+                if (!url.includes('aade.gr')) {
+                    this.showNotification('Παρακαλώ χρησιμοποιήστε μόνο πηγές από την επίσημη ιστοσελίδα ΑΑΔΕ (aade.gr)', 'warning');
+                    return;
+                }
+                
+                await this.addFeed(url, name, 'official');
+                
+                urlInput.value = '';
+                nameInput.value = '';
+            }
+            
+            async addAllAADEFeeds() {
                 let addedCount = 0;
-                let successCount = 0;
                 
-                this.showNotification('Προσθήκη πηγών...', 'info');
+                this.showNotification('Προσθήκη πηγών ΑΑΔΕ...', 'info');
                 
-                for (const feed of this.popularFeeds) {
+                for (const feed of this.aadeFeeds) {
                     if (!this.feeds.has(feed.url)) {
                         await this.addFeed(feed.url, feed.name, feed.category);
                         addedCount++;
-                        successCount++;
-                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        await new Promise(resolve => setTimeout(resolve, 1000));
                     }
                 }
                 
                 if (addedCount > 0) {
-                    this.showNotification(`Προστέθηκαν ${addedCount} νέες πηγές!`, 'success');
+                    this.showNotification(`Προστέθηκαν ${addedCount} νέες πηγές ΑΑΔΕ!`, 'success');
                 } else {
-                    this.showNotification('Όλες οι δημοφιλείς πηγές υπάρχουν ήδη', 'info');
+                    this.showNotification('Όλες οι πηγές ΑΑΔΕ υπάρχουν ήδη', 'info');
                 }
             }
             
@@ -390,12 +455,12 @@
                 const enabledFeeds = Array.from(this.feeds.values()).filter(feed => feed.enabled);
                 
                 if (enabledFeeds.length === 0) {
-                    this.showNotification('Δεν υπάρχουν ενεργές πηγές για ανανέωση', 'warning');
+                    this.showNotification('Δεν υπάρχουν ενεργές πηγές ΑΑΔΕ για ανανέωση', 'warning');
                     return;
                 }
                 
                 this.setLoading(true);
-                this.showNotification('Ανανέωση πηγών...', 'info');
+                this.showNotification('Ανανέωση πηγών ΑΑΔΕ...', 'info');
                 
                 let successCount = 0;
                 let totalNewArticles = 0;
@@ -407,24 +472,24 @@
                             successCount++;
                             totalNewArticles += newArticles;
                         }
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        await new Promise(resolve => setTimeout(resolve, 800));
                     } catch (error) {
-                        console.error(`Failed to refresh feed ${feed.name}:`, error);
+                        console.error(`Failed to refresh AADE feed ${feed.name}:`, error);
                     }
                 }
                 
                 this.setLoading(false);
                 
                 if (totalNewArticles > 0) {
-                    this.showNotification(`Βρέθηκαν ${totalNewArticles} νέα άρθρα από ${successCount} πηγές!`, 'success');
+                    this.showNotification(`Βρέθηκαν ${totalNewArticles} νέες ειδήσεις από ${successCount} πηγές ΑΑΔΕ!`, 'success');
                 } else {
-                    this.showNotification('Δεν βρέθηκαν νέα άρθρα', 'info');
+                    this.showNotification('Δεν βρέθηκαν νέες ειδήσεις από ΑΑΔΕ', 'info');
                 }
             }
             
             async fetchFeedArticles(feed) {
                 try {
-                    console.log(`🔄 Fetching articles from: ${feed.name}`);
+                    console.log(`🔄 Fetching AADE articles from: ${feed.name}`);
                     
                     const articles = await RSSParser.parseRSSFeed(feed.url, feed.name);
                     let newArticlesCount = 0;
@@ -442,13 +507,13 @@
                     }
                     
                     feed.lastFetch = new Date().toISOString();
-                    console.log(`✅ Added ${newArticlesCount} new articles from ${feed.name}`);
+                    console.log(`✅ Added ${newArticlesCount} new AADE articles from ${feed.name}`);
                     
                     this.renderArticles();
                     return newArticlesCount;
                     
                 } catch (error) {
-                    console.error(`❌ Failed to fetch from ${feed.name}:`, error);
+                    console.error(`❌ Failed to fetch from AADE ${feed.name}:`, error);
                     this.showNotification(`Σφάλμα στη φόρτωση από ${feed.name}`, 'error');
                     return 0;
                 }
@@ -482,21 +547,15 @@
                 const publishDate = new Date(article.pub_date).toLocaleDateString('el-GR', {
                     year: 'numeric',
                     month: 'short',
-                    day: 'numeric'
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
                 });
-                
-                const sourceColors = {
-                    'TaxHeaven Νέα': 'bg-blue-100 text-blue-800',
-                    'Forin.gr': 'bg-green-100 text-green-800',
-                    'Capital Tax': 'bg-purple-100 text-purple-800'
-                };
-                
-                const sourceColor = sourceColors[article.source] || 'bg-gray-100 text-gray-800';
                 
                 return `
                     <article class="news-card bg-white rounded-lg shadow-sm p-6 fade-in">
                         <div class="flex justify-between items-start mb-3">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full ${sourceColor}">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
                                 ${article.source}
                             </span>
                             <button class="bookmark-btn text-gray-400 hover:text-yellow-500 transition-colors" 
@@ -518,7 +577,7 @@
                             <time datetime="${article.pub_date}">${publishDate}</time>
                             <a href="${article.source_url}" target="_blank" rel="noopener noreferrer" 
                                class="text-blue-600 hover:text-blue-800 transition-colors">
-                                Διαβάστε περισσότερα →
+                                Διαβάστε στην ΑΑΔΕ →
                             </a>
                         </div>
                     </article>
