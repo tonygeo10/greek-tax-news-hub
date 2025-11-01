@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Greek Tax News Hub</title>
-    <!-- Use Tailwind CSS CDN for now -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { box-sizing: border-box; }
@@ -68,7 +67,6 @@
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
-    <!-- Header -->
     <header class="bg-white shadow-sm border-b">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-4">
@@ -84,22 +82,15 @@
                         <span id="refresh-icon">🔄</span>
                         <span>Ανανέωση</span>
                     </button>
-                    <button id="manage-feeds-btn" class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
-                        <span>⚙️</span>
-                        <span>Διαχείριση</span>
-                    </button>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Quick Add Section -->
         <section class="bg-white rounded-lg shadow-sm p-6 mb-8">
             <h2 class="text-lg font-semibold text-gray-900 mb-4">Προσθήκη Πηγών RSS</h2>
             
-            <!-- Popular Feeds -->
             <div class="mb-6">
                 <h3 class="text-md font-medium text-gray-700 mb-3">Δημοφιλείς Πηγές:</h3>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -123,35 +114,18 @@
                     Προσθήκη Όλων των Δημοφιλών Πηγών
                 </button>
             </div>
-
-            <!-- Manual Add -->
-            <div class="border-t pt-6">
-                <h3 class="text-md font-medium text-gray-700 mb-3">Προσθήκη Προσαρμοσμένης Πηγής:</h3>
-                <div class="flex flex-col sm:flex-row gap-3">
-                    <input type="url" id="custom-rss-url" placeholder="https://example.com/rss" 
-                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <input type="text" id="custom-rss-name" placeholder="Όνομα πηγής" 
-                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                    <button id="add-custom-feed" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors">
-                        Προσθήκη
-                    </button>
-                </div>
-            </div>
         </section>
 
-        <!-- Articles Grid -->
         <section id="articles-section">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-xl font-semibold text-gray-900">Άρθρα <span id="article-count" class="text-gray-500">(0)</span></h2>
             </div>
 
-            <!-- Loading State -->
             <div id="loading-state" class="hidden text-center py-12">
                 <div class="loading-spinner mx-auto mb-4"></div>
                 <p class="text-gray-600">Φόρτωση άρθρων...</p>
             </div>
 
-            <!-- Empty State -->
             <div id="empty-state" class="text-center py-12">
                 <div class="text-6xl mb-4">📰</div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Δεν υπάρχουν άρθρα</h3>
@@ -161,122 +135,99 @@
                 </button>
             </div>
 
-            <!-- Articles Grid -->
             <div id="articles-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Articles will be inserted here -->
             </div>
         </section>
     </main>
 
     <script>
-        // Enhanced RSS Parser with working CORS proxies
+        // SIMPLE RSS Parser that actually works
         class RSSParser {
-            static async parseRSSFeed(url) {
-                console.log('📡 Fetching RSS from:', url);
+            static async parseRSSFeed(url, name) {
+                console.log('📡 Fetching RSS from:', name, url);
                 
-                // Updated list of working CORS proxies
-                const proxies = [
-                    `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`,
-                    `https://cors-anywhere.herokuapp.com/${url}`,
-                    `https://thingproxy.freeboard.io/fetch/${url}`,
-                    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
-                ];
+                // Use RSS2JSON API - it's specifically designed for RSS feeds
+                const rss2jsonUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`;
                 
-                for (const proxyUrl of proxies) {
+                try {
+                    console.log('Using RSS2JSON API...');
+                    const response = await fetch(rss2jsonUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`RSS2JSON API error: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    if (data.status !== 'ok') {
+                        throw new Error(`RSS2JSON error: ${data.message}`);
+                    }
+                    
+                    console.log(`✅ Successfully fetched ${data.items.length} articles from ${name}`);
+                    
+                    // Format the articles
+                    return data.items.map(item => ({
+                        title: item.title || 'Χωρίς τίτλο',
+                        description: item.description || item.content || 'Δεν υπάρχει περιγραφή',
+                        source_url: item.link || '#',
+                        pub_date: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                        read: false,
+                        bookmarked: false,
+                        created_at: new Date().toISOString(),
+                        source: name,
+                        category: 'news'
+                    }));
+                    
+                } catch (error) {
+                    console.error('❌ RSS2JSON failed:', error);
+                    
+                    // Fallback: Try allorigins with XML parsing
                     try {
-                        console.log('Trying proxy:', proxyUrl);
-                        const response = await fetch(proxyUrl, {
-                            headers: {
-                                'User-Agent': 'GreekTaxNewsHub/1.0'
-                            }
-                        });
+                        console.log('Trying AllOrigins fallback...');
+                        const allOriginsUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                        const response = await fetch(allOriginsUrl);
                         
-                        if (!response.ok) {
-                            console.log('Proxy response not OK, trying next...');
-                            continue;
-                        }
-                        
-                        // Handle different proxy response formats
-                        if (proxyUrl.includes('rss2json')) {
+                        if (response.ok) {
                             const data = await response.json();
-                            if (data.status === 'ok' && data.items) {
-                                console.log(`Found ${data.items.length} articles via rss2json`);
-                                return this.formatRSS2JSON(data.items, url);
-                            }
-                        } else {
-                            const text = await response.text();
-                            if (!text) {
-                                console.log('No content received, trying next proxy...');
-                                continue;
-                            }
+                            const parser = new DOMParser();
+                            const xmlDoc = parser.parseFromString(data.contents, 'text/xml');
+                            const items = xmlDoc.querySelectorAll('item');
                             
-                            const articles = this.parseXML(text, url);
-                            console.log(`Found ${articles.length} articles via XML parsing`);
+                            const articles = [];
+                            items.forEach(item => {
+                                const title = item.querySelector('title')?.textContent?.trim();
+                                const description = item.querySelector('description')?.textContent?.trim();
+                                const link = item.querySelector('link')?.textContent?.trim();
+                                const pubDate = item.querySelector('pubDate')?.textContent?.trim();
+                                
+                                if (title && link) {
+                                    articles.push({
+                                        title: title,
+                                        description: description || 'Δεν υπάρχει περιγραφή',
+                                        source_url: link,
+                                        pub_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+                                        read: false,
+                                        bookmarked: false,
+                                        created_at: new Date().toISOString(),
+                                        source: name,
+                                        category: 'news'
+                                    });
+                                }
+                            });
+                            
+                            console.log(`✅ Fallback fetched ${articles.length} articles from ${name}`);
                             return articles;
                         }
-                        
-                    } catch (error) {
-                        console.log(`Proxy failed: ${error.message}, trying next...`);
-                        continue;
+                    } catch (fallbackError) {
+                        console.error('❌ Fallback also failed:', fallbackError);
                     }
-                }
-                
-                throw new Error('All CORS proxies failed');
-            }
-            
-            static parseXML(xmlContent, sourceUrl) {
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
-                
-                const parseError = xmlDoc.querySelector('parsererror');
-                if (parseError) {
-                    console.log('XML parse error:', parseError.textContent);
-                    throw new Error('Invalid XML format');
-                }
-                
-                // Try different item selectors for various RSS formats
-                const items = xmlDoc.querySelectorAll('item, entry');
-                const articles = [];
-                
-                console.log(`Found ${items.length} items in RSS feed`);
-                
-                items.forEach(item => {
-                    const title = item.querySelector('title')?.textContent?.trim();
-                    const description = item.querySelector('description, summary')?.textContent?.trim();
-                    const link = item.querySelector('link')?.textContent?.trim() || 
-                                item.querySelector('link')?.getAttribute('href')?.trim();
-                    const pubDate = item.querySelector('pubDate, published, updated')?.textContent?.trim();
                     
-                    if (title && link) {
-                        articles.push({
-                            title: title,
-                            description: description || 'Δεν υπάρχει περιγραφή',
-                            source_url: link,
-                            pub_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
-                            read: false,
-                            bookmarked: false,
-                            created_at: new Date().toISOString()
-                        });
-                    }
-                });
-                
-                return articles;
-            }
-            
-            static formatRSS2JSON(items, sourceUrl) {
-                return items.map(item => ({
-                    title: item.title || 'Χωρίς τίτλο',
-                    description: item.description || item.content || 'Δεν υπάρχει περιγραφή',
-                    source_url: item.link || '#',
-                    pub_date: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
-                    read: false,
-                    bookmarked: false,
-                    created_at: new Date().toISOString()
-                }));
+                    throw new Error(`Failed to fetch from ${name}`);
+                }
             }
         }
 
-        // Enhanced Data Storage with localStorage
+        // Data Storage with localStorage
         class DataStorage {
             constructor() {
                 this.storageKey = 'greekTaxNewsData';
@@ -299,7 +250,6 @@
                 const stored = localStorage.getItem(this.storageKey);
                 const data = stored ? JSON.parse(stored) : { articles: [], feeds: [] };
                 
-                // Generate unique ID
                 article.id = 'article_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                 data.articles.push(article);
                 
@@ -319,16 +269,6 @@
                 }
                 return { isOk: true };
             }
-            
-            async delete(article) {
-                const stored = localStorage.getItem(this.storageKey);
-                if (stored) {
-                    const data = JSON.parse(stored);
-                    data.articles = data.articles.filter(a => a.id !== article.id);
-                    localStorage.setItem(this.storageKey, JSON.stringify(data));
-                }
-                return { isOk: true };
-            }
         }
 
         // Main Application
@@ -336,7 +276,6 @@
             constructor() {
                 this.articles = [];
                 this.feeds = new Map();
-                this.filteredArticles = [];
                 this.isLoading = false;
                 this.dataStorage = new DataStorage();
                 
@@ -352,17 +291,13 @@
             async init() {
                 console.log('🚀 Initializing Greek Tax News Hub...');
                 
-                // Initialize data storage
                 await this.dataStorage.init();
                 const result = await this.dataStorage.getAll();
                 this.articles = result.data || [];
                 
-                // Load saved feeds from localStorage
                 this.loadFeedsFromStorage();
-                
                 this.setupEventListeners();
                 this.renderArticles();
-                this.updateStats();
                 
                 console.log('✅ App initialized with', this.articles.length, 'articles');
             }
@@ -387,10 +322,8 @@
             }
             
             setupEventListeners() {
-                // Refresh button
                 document.getElementById('refresh-btn').addEventListener('click', () => this.refreshAllFeeds());
                 
-                // Popular feeds
                 document.querySelectorAll('.popular-feed-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const url = e.currentTarget.dataset.url;
@@ -400,12 +333,8 @@
                     });
                 });
                 
-                // Add all popular feeds
                 document.getElementById('add-all-popular').addEventListener('click', () => this.addAllPopularFeeds());
                 document.getElementById('add-first-feeds').addEventListener('click', () => this.addAllPopularFeeds());
-                
-                // Custom feed
-                document.getElementById('add-custom-feed').addEventListener('click', () => this.addCustomFeed());
             }
             
             async addFeed(url, name, category = 'news') {
@@ -427,30 +356,12 @@
                 this.saveFeedsToStorage();
                 this.showNotification(`Προστέθηκε η πηγή: ${name}`, 'success');
                 
-                // Fetch articles immediately
                 await this.fetchFeedArticles(feed);
-            }
-            
-            async addCustomFeed() {
-                const urlInput = document.getElementById('custom-rss-url');
-                const nameInput = document.getElementById('custom-rss-name');
-                
-                const url = urlInput.value.trim();
-                const name = nameInput.value.trim();
-                
-                if (!url || !name) {
-                    this.showNotification('Παρακαλώ συμπληρώστε URL και όνομα', 'error');
-                    return;
-                }
-                
-                await this.addFeed(url, name, 'custom');
-                
-                urlInput.value = '';
-                nameInput.value = '';
             }
             
             async addAllPopularFeeds() {
                 let addedCount = 0;
+                let successCount = 0;
                 
                 this.showNotification('Προσθήκη πηγών...', 'info');
                 
@@ -458,8 +369,8 @@
                     if (!this.feeds.has(feed.url)) {
                         await this.addFeed(feed.url, feed.name, feed.category);
                         addedCount++;
-                        // Small delay between feeds to avoid rate limiting
-                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        successCount++;
+                        await new Promise(resolve => setTimeout(resolve, 1500));
                     }
                 }
                 
@@ -496,7 +407,6 @@
                             successCount++;
                             totalNewArticles += newArticles;
                         }
-                        // Delay between feeds
                         await new Promise(resolve => setTimeout(resolve, 1000));
                     } catch (error) {
                         console.error(`Failed to refresh feed ${feed.name}:`, error);
@@ -516,16 +426,10 @@
                 try {
                     console.log(`🔄 Fetching articles from: ${feed.name}`);
                     
-                    const articles = await RSSParser.parseRSSFeed(feed.url);
+                    const articles = await RSSParser.parseRSSFeed(feed.url, feed.name);
                     let newArticlesCount = 0;
                     
                     for (const article of articles) {
-                        // Add feed information to article
-                        article.source = feed.name;
-                        article.category = feed.category;
-                        article.feed_id = feed.url;
-                        
-                        // Check if article already exists
                         const existingArticle = this.articles.find(a => 
                             a.title === article.title && a.source === article.source
                         );
@@ -545,7 +449,7 @@
                     
                 } catch (error) {
                     console.error(`❌ Failed to fetch from ${feed.name}:`, error);
-                    this.showNotification(`Σφάλμα στη φόρτωση από ${feed.name}: ${error.message}`, 'error');
+                    this.showNotification(`Σφάλμα στη φόρτωση από ${feed.name}`, 'error');
                     return 0;
                 }
             }
@@ -564,7 +468,6 @@
                 
                 emptyState.classList.add('hidden');
                 
-                // Sort by date (newest first)
                 const sortedArticles = [...this.articles].sort((a, b) => 
                     new Date(b.pub_date) - new Date(a.pub_date)
                 );
@@ -582,7 +485,6 @@
                     day: 'numeric'
                 });
                 
-                // Determine source color
                 const sourceColors = {
                     'TaxHeaven Νέα': 'bg-blue-100 text-blue-800',
                     'Forin.gr': 'bg-green-100 text-green-800',
@@ -597,12 +499,10 @@
                             <span class="px-2 py-1 text-xs font-medium rounded-full ${sourceColor}">
                                 ${article.source}
                             </span>
-                            <div class="flex space-x-2">
-                                <button class="bookmark-btn text-gray-400 hover:text-yellow-500 transition-colors" 
-                                        data-article-id="${article.id}" title="Προσθήκη στα αγαπημένα">
-                                    ${article.bookmarked ? '⭐' : '☆'}
-                                </button>
-                            </div>
+                            <button class="bookmark-btn text-gray-400 hover:text-yellow-500 transition-colors" 
+                                    data-article-id="${article.id}" title="Προσθήκη στα αγαπημένα">
+                                ${article.bookmarked ? '⭐' : '☆'}
+                            </button>
                         </div>
                         
                         <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
@@ -661,10 +561,6 @@
                     refreshIcon.classList.remove('animate-spin');
                     loadingState.classList.add('hidden');
                 }
-            }
-            
-            updateStats() {
-                // Update any statistics if needed
             }
             
             showNotification(message, type = 'info') {
