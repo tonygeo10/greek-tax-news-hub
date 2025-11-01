@@ -282,6 +282,64 @@ window.dataSdk = window.dataSdk || {
     delete: async () => ({ isOk: true })
 };
 </script>
+  // Enhanced data SDK fallback with localStorage
+if (typeof window.dataSdk === 'undefined') {
+    window.dataSdk = {
+        init: function(dataHandler) {
+            return new Promise((resolve) => {
+                // Load from localStorage
+                const stored = localStorage.getItem('greekTaxNewsData');
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    dataHandler.onDataChanged(data.articles || []);
+                } else {
+                    dataHandler.onDataChanged([]);
+                }
+                resolve({ isOk: true });
+            });
+        },
+        
+        create: function(article) {
+            return new Promise((resolve) => {
+                const stored = localStorage.getItem('greekTaxNewsData');
+                const data = stored ? JSON.parse(stored) : { articles: [], feeds: [] };
+                
+                article.__backendId = Date.now().toString();
+                data.articles.push(article);
+                
+                localStorage.setItem('greekTaxNewsData', JSON.stringify(data));
+                resolve({ isOk: true });
+            });
+        },
+        
+        update: function(article) {
+            return new Promise((resolve) => {
+                const stored = localStorage.getItem('greekTaxNewsData');
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    const index = data.articles.findIndex(a => a.__backendId === article.__backendId);
+                    if (index !== -1) {
+                        data.articles[index] = article;
+                        localStorage.setItem('greekTaxNewsData', JSON.stringify(data));
+                    }
+                }
+                resolve({ isOk: true });
+            });
+        },
+        
+        delete: function(article) {
+            return new Promise((resolve) => {
+                const stored = localStorage.getItem('greekTaxNewsData');
+                if (stored) {
+                    const data = JSON.parse(stored);
+                    data.articles = data.articles.filter(a => a.__backendId !== article.__backendId);
+                    localStorage.setItem('greekTaxNewsData', JSON.stringify(data));
+                }
+                resolve({ isOk: true });
+            });
+        }
+    };
+}
 
         // Greek Tax News Hub - Main Application
         class GreekTaxNewsApp {
