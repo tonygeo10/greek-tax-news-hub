@@ -208,27 +208,30 @@
    </div>
   </div>
   <script>
-        // RSS Parser utility
-        class RSSParser {
-            static async parseRSSFeed(url) {
+         class RSSParser {
+    static async parseRSSFeed(url) {
+        try {
+            // Try multiple CORS proxies
+            const proxies = [
+                `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+                `https://corsproxy.io/?${encodeURIComponent(url)}`,
+                `https://cors-anywhere.herokuapp.com/${url}`
+            ];
+            
+            for (const proxyUrl of proxies) {
                 try {
-                    // Use a CORS proxy for RSS feeds
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                    console.log(`Trying proxy: ${proxyUrl}`);
                     const response = await fetch(proxyUrl);
                     
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
+                    if (!response.ok) continue;
                     
                     const data = await response.json();
                     const parser = new DOMParser();
-                    const xmlDoc = parser.parseFromString(data.contents, 'text/xml');
+                    const xmlDoc = parser.parseFromString(data.contents || data, 'text/xml');
                     
                     // Check for parsing errors
                     const parseError = xmlDoc.querySelector('parsererror');
-                    if (parseError) {
-                        throw new Error('Invalid XML format');
-                    }
+                    if (parseError) continue;
                     
                     const items = xmlDoc.querySelectorAll('item');
                     const articles = [];
@@ -254,11 +257,18 @@
                     
                     return articles;
                 } catch (error) {
-                    console.error('RSS parsing error:', error);
-                    throw new Error(`Failed to parse RSS feed: ${error.message}`);
+                    console.log(`Proxy failed, trying next...`);
+                    continue;
                 }
             }
+            
+            throw new Error('All CORS proxies failed');
+        } catch (error) {
+            console.error('RSS parsing error:', error);
+            throw new Error(`Failed to parse RSS feed: ${error.message}`);
         }
+    }
+}
    <script>
 // Temporary SDK fallbacks for testing
 window.elementSdk = window.elementSdk || {
