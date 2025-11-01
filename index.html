@@ -169,69 +169,51 @@
     </main>
 
     <script>
-        // Enhanced RSS Parser with multiple fallback proxies
+        // Enhanced RSS Parser with working CORS proxies
         class RSSParser {
             static async parseRSSFeed(url) {
                 console.log('📡 Fetching RSS from:', url);
                 
+                // Updated list of working CORS proxies
                 const proxies = [
-                    `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
-                    `https://corsproxy.io/?${encodeURIComponent(url)}`
+                    `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`,
+                    `https://cors-anywhere.herokuapp.com/${url}`,
+                    `https://thingproxy.freeboard.io/fetch/${url}`,
+                    `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
                 ];
                 
                 for (const proxyUrl of proxies) {
                     try {
                         console.log('Trying proxy:', proxyUrl);
-                        const response = await fetch(proxyUrl);
+                        const response = await fetch(proxyUrl, {
+                            headers: {
+                                'User-Agent': 'GreekTaxNewsHub/1.0'
+                            }
+                        });
                         
                         if (!response.ok) {
                             console.log('Proxy response not OK, trying next...');
                             continue;
                         }
                         
-                        const data = await response.json();
-                        const content = data.contents || data;
-                        
-                        if (!content) {
-                            console.log('No content received, trying next proxy...');
-                            continue;
-                        }
-                        
-                        const parser = new DOMParser();
-                        const xmlDoc = parser.parseFromString(content, 'text/xml');
-                        
-                        const parseError = xmlDoc.querySelector('parsererror');
-                        if (parseError) {
-                            console.log('XML parse error, trying next proxy...');
-                            continue;
-                        }
-                        
-                        const items = xmlDoc.querySelectorAll('item');
-                        const articles = [];
-                        
-                        console.log(`Found ${items.length} items in RSS feed`);
-                        
-                        items.forEach(item => {
-                            const title = item.querySelector('title')?.textContent?.trim();
-                            const description = item.querySelector('description')?.textContent?.trim();
-                            const link = item.querySelector('link')?.textContent?.trim();
-                            const pubDate = item.querySelector('pubDate')?.textContent?.trim();
-                            
-                            if (title && link) {
-                                articles.push({
-                                    title: title,
-                                    description: description || 'Δεν υπάρχει περιγραφή',
-                                    source_url: link,
-                                    pub_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
-                                    read: false,
-                                    bookmarked: false,
-                                    created_at: new Date().toISOString()
-                                });
+                        // Handle different proxy response formats
+                        if (proxyUrl.includes('rss2json')) {
+                            const data = await response.json();
+                            if (data.status === 'ok' && data.items) {
+                                console.log(`Found ${data.items.length} articles via rss2json`);
+                                return this.formatRSS2JSON(data.items, url);
                             }
-                        });
-                        
-                        console.log(`Successfully parsed ${articles.length} articles`);
-                        return articles;
+                        } else {
+                            const text = await response.text();
+                            if (!text) {
+                                console.log('No content received, trying next proxy...');
+                                continue;
+                            }
+                            
+                            const articles = this.parseXML(text, url);
+                            console.log(`Found ${articles.length} articles via XML parsing`);
+                            return articles;
+                        }
                         
                     } catch (error) {
                         console.log(`Proxy failed: ${error.message}, trying next...`);
@@ -240,6 +222,57 @@
                 }
                 
                 throw new Error('All CORS proxies failed');
+            }
+            
+            static parseXML(xmlContent, sourceUrl) {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlContent, 'text/xml');
+                
+                const parseError = xmlDoc.querySelector('parsererror');
+                if (parseError) {
+                    console.log('XML parse error:', parseError.textContent);
+                    throw new Error('Invalid XML format');
+                }
+                
+                // Try different item selectors for various RSS formats
+                const items = xmlDoc.querySelectorAll('item, entry');
+                const articles = [];
+                
+                console.log(`Found ${items.length} items in RSS feed`);
+                
+                items.forEach(item => {
+                    const title = item.querySelector('title')?.textContent?.trim();
+                    const description = item.querySelector('description, summary')?.textContent?.trim();
+                    const link = item.querySelector('link')?.textContent?.trim() || 
+                                item.querySelector('link')?.getAttribute('href')?.trim();
+                    const pubDate = item.querySelector('pubDate, published, updated')?.textContent?.trim();
+                    
+                    if (title && link) {
+                        articles.push({
+                            title: title,
+                            description: description || 'Δεν υπάρχει περιγραφή',
+                            source_url: link,
+                            pub_date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+                            read: false,
+                            bookmarked: false,
+                            created_at: new Date().toISOString()
+                        });
+                    }
+                });
+                
+                return articles;
+            }
+            
+            static formatRSS2JSON(items, sourceUrl) {
+                return items.map(item => ({
+                    title: item.title || 'Χωρίς τίτλο',
+                    description: item.description || item.content || 'Δεν υπάρχει περιγραφή',
+                    source_url: item.link || '#',
+                    pub_date: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString(),
+                    read: false,
+                    bookmarked: false,
+                    created_at: new Date().toISOString()
+                }));
             }
         }
 
@@ -419,12 +452,14 @@
             async addAllPopularFeeds() {
                 let addedCount = 0;
                 
+                this.showNotification('Προσθήκη πηγών...', 'info');
+                
                 for (const feed of this.popularFeeds) {
                     if (!this.feeds.has(feed.url)) {
                         await this.addFeed(feed.url, feed.name, feed.category);
                         addedCount++;
                         // Small delay between feeds to avoid rate limiting
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        await new Promise(resolve => setTimeout(resolve, 2000));
                     }
                 }
                 
@@ -461,6 +496,8 @@
                             successCount++;
                             totalNewArticles += newArticles;
                         }
+                        // Delay between feeds
+                        await new Promise(resolve => setTimeout(resolve, 1000));
                     } catch (error) {
                         console.error(`Failed to refresh feed ${feed.name}:`, error);
                     }
@@ -508,7 +545,7 @@
                     
                 } catch (error) {
                     console.error(`❌ Failed to fetch from ${feed.name}:`, error);
-                    this.showNotification(`Σφάλμα στη φόρτωση από ${feed.name}`, 'error');
+                    this.showNotification(`Σφάλμα στη φόρτωση από ${feed.name}: ${error.message}`, 'error');
                     return 0;
                 }
             }
@@ -545,10 +582,19 @@
                     day: 'numeric'
                 });
                 
+                // Determine source color
+                const sourceColors = {
+                    'TaxHeaven Νέα': 'bg-blue-100 text-blue-800',
+                    'Forin.gr': 'bg-green-100 text-green-800',
+                    'Capital Tax': 'bg-purple-100 text-purple-800'
+                };
+                
+                const sourceColor = sourceColors[article.source] || 'bg-gray-100 text-gray-800';
+                
                 return `
                     <article class="news-card bg-white rounded-lg shadow-sm p-6 fade-in">
                         <div class="flex justify-between items-start mb-3">
-                            <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full ${sourceColor}">
                                 ${article.source}
                             </span>
                             <div class="flex space-x-2">
@@ -639,7 +685,7 @@
                             toast.parentNode.removeChild(toast);
                         }
                     }, 300);
-                }, 3000);
+                }, 4000);
             }
         }
         
