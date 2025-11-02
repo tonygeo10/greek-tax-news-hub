@@ -1,0 +1,91 @@
+name: Deploy Greek Tax News Hub
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # Test the backend
+  test-backend:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+    
+    - name: Install backend dependencies
+      run: |
+        cd backend
+        npm ci
+    
+    - name: Run backend tests
+      run: |
+        cd backend
+        npm test --if-present
+
+  # Deploy to GitHub Pages (frontend)
+  deploy-frontend:
+    needs: test-backend
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Pages
+      uses: actions/configure-pages@v3
+    
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v2
+      with:
+        path: './frontend'
+    
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v2
+
+  # Deploy backend (example for Vercel/Railway)
+  deploy-backend:
+    needs: test-backend
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+        cache-dependency-path: backend/package-lock.json
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        npm ci
+    
+    - name: Build backend
+      run: |
+        cd backend
+        npm run build --if-present
+    
+    - name: Deploy to Railway
+      uses: railway-org/railway-action@v1
+      if: env.RAILWAY_TOKEN
+      with:
+        railway-token: ${{ secrets.RAILWAY_TOKEN }}
+        service: greek-tax-news-api
+        environment: production
