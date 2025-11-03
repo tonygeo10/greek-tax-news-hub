@@ -5,6 +5,7 @@ const cors = require('cors');
 const Parser = require('rss-parser');
 const winston = require('winston');
 const axios = require('axios');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 
@@ -26,6 +27,15 @@ const logger = winston.createLogger({
     ]
 });
 
+// Rate limiting configuration
+const apiLimiter = rateLimit({
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
+    max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 // RSS Parser with custom configuration
 const parser = new Parser({
     timeout: parseInt(process.env.RSS_TIMEOUT) || 10000,
@@ -42,6 +52,7 @@ const parser = new Parser({
 
 app.use(cors());
 app.use(express.json());
+app.use('/api/', apiLimiter);
 
 // Environment variable validation
 function validateEnvironment() {
@@ -139,14 +150,25 @@ function parseDate(dateStr) {
 function cleanDescription(description) {
     if (!description) return '';
     
-    return description
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
-        .replace(/&nbsp;/g, ' ')
-        .replace(/&amp;/g, '&')
+    // First, decode any HTML entities
+    const decoded = description
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'")
+        .replace(/&nbsp;/g, ' ');
+    
+    // Remove all HTML tags iteratively until none remain
+    let cleaned = decoded;
+    let prevLength;
+    do {
+        prevLength = cleaned.length;
+        cleaned = cleaned.replace(/<[^>]*>/g, '');
+    } while (cleaned.length !== prevLength && cleaned.includes('<'));
+    
+    // Now encode remaining ampersands and trim
+    return cleaned
+        .replace(/&/g, '&amp;')
         .trim()
         .substring(0, 500); // Limit to 500 characters
 }
