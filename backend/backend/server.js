@@ -158,13 +158,15 @@ function cleanDescription(description) {
         .replace(/&#39;/g, "'")
         .replace(/&nbsp;/g, ' ');
     
-    // Remove all HTML tags iteratively until none remain
+    // Remove all HTML tags iteratively (max 10 iterations to prevent infinite loops)
     let cleaned = decoded;
-    let prevLength;
-    do {
-        prevLength = cleaned.length;
+    let iterations = 0;
+    const maxIterations = 10;
+    
+    while (/<[^>]*>/.test(cleaned) && iterations < maxIterations) {
         cleaned = cleaned.replace(/<[^>]*>/g, '');
-    } while (cleaned.length !== prevLength && cleaned.includes('<'));
+        iterations++;
+    }
     
     // Now encode remaining ampersands and trim
     return cleaned
