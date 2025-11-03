@@ -160,7 +160,7 @@ app.get('/api/aade-news', async (req, res) => {
                 .input('pageSize', sql.Int, pageSize)
                 .input('offset', sql.Int, offset)
                 .query(`
-                    SELECT *, ROW_NUMBER() OVER (ORDER BY PublishDate DESC) as RowNum
+                    SELECT *
                     FROM Articles
                     WHERE FeedID = 1
                     ORDER BY PublishDate DESC
@@ -279,6 +279,7 @@ app.get('/api/feeds', async (req, res) => {
 /**
  * Database schema migration endpoint to add tracking columns
  * This endpoint adds CreatedBy, LastModifiedBy, and LastModifiedAt columns to tables
+ * NOTE: This endpoint should be protected with authentication/authorization in production
  */
 app.post('/api/migrate-schema', async (req, res) => {
     try {
@@ -293,24 +294,28 @@ app.post('/api/migrate-schema', async (req, res) => {
         
         // Add columns to Articles table if they don't exist
         try {
-            await pool.request().query(`
-                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Articles') AND name = 'CreatedBy')
-                BEGIN
-                    ALTER TABLE Articles ADD CreatedBy NVARCHAR(100) DEFAULT '${CURRENT_USER}';
-                END
-            `);
+            await pool.request()
+                .input('defaultUser', sql.NVarChar(100), CURRENT_USER)
+                .query(`
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Articles') AND name = 'CreatedBy')
+                    BEGIN
+                        ALTER TABLE Articles ADD CreatedBy NVARCHAR(100) DEFAULT @defaultUser;
+                    END
+                `);
             migrations.push('Articles.CreatedBy added');
         } catch (err) {
             logger.warn('Articles.CreatedBy migration warning:', err.message);
         }
 
         try {
-            await pool.request().query(`
-                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Articles') AND name = 'LastModifiedBy')
-                BEGIN
-                    ALTER TABLE Articles ADD LastModifiedBy NVARCHAR(100) DEFAULT '${CURRENT_USER}';
-                END
-            `);
+            await pool.request()
+                .input('defaultUser', sql.NVarChar(100), CURRENT_USER)
+                .query(`
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Articles') AND name = 'LastModifiedBy')
+                    BEGIN
+                        ALTER TABLE Articles ADD LastModifiedBy NVARCHAR(100) DEFAULT @defaultUser;
+                    END
+                `);
             migrations.push('Articles.LastModifiedBy added');
         } catch (err) {
             logger.warn('Articles.LastModifiedBy migration warning:', err.message);
@@ -330,24 +335,28 @@ app.post('/api/migrate-schema', async (req, res) => {
 
         // Add columns to RSSFeeds table if they don't exist
         try {
-            await pool.request().query(`
-                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('RSSFeeds') AND name = 'CreatedBy')
-                BEGIN
-                    ALTER TABLE RSSFeeds ADD CreatedBy NVARCHAR(100) DEFAULT '${CURRENT_USER}';
-                END
-            `);
+            await pool.request()
+                .input('defaultUser', sql.NVarChar(100), CURRENT_USER)
+                .query(`
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('RSSFeeds') AND name = 'CreatedBy')
+                    BEGIN
+                        ALTER TABLE RSSFeeds ADD CreatedBy NVARCHAR(100) DEFAULT @defaultUser;
+                    END
+                `);
             migrations.push('RSSFeeds.CreatedBy added');
         } catch (err) {
             logger.warn('RSSFeeds.CreatedBy migration warning:', err.message);
         }
 
         try {
-            await pool.request().query(`
-                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('RSSFeeds') AND name = 'LastModifiedBy')
-                BEGIN
-                    ALTER TABLE RSSFeeds ADD LastModifiedBy NVARCHAR(100) DEFAULT '${CURRENT_USER}';
-                END
-            `);
+            await pool.request()
+                .input('defaultUser', sql.NVarChar(100), CURRENT_USER)
+                .query(`
+                    IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('RSSFeeds') AND name = 'LastModifiedBy')
+                    BEGIN
+                        ALTER TABLE RSSFeeds ADD LastModifiedBy NVARCHAR(100) DEFAULT @defaultUser;
+                    END
+                `);
             migrations.push('RSSFeeds.LastModifiedBy added');
         } catch (err) {
             logger.warn('RSSFeeds.LastModifiedBy migration warning:', err.message);
