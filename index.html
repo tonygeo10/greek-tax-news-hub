@@ -53,7 +53,8 @@
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
 
-                    const feeds = await response.json();
+                    const data = await response.json();
+                    const feeds = data.feeds || data; // Handle both new and old response format
                     feeds.forEach(feed => this.feeds.set(feed.FeedID, feed));
                 } catch (error) {
                     if (retryCount < this.maxRetries) {
@@ -116,7 +117,12 @@
                         </h2>
                         <p class="text-gray-600 mb-4">${this.escapeHtml(article.description)}</p>
                         <div class="text-sm text-gray-500">
-                            ${this.formatDate(article.pubDate)}
+                            <div class="flex flex-wrap gap-4">
+                                <span>📅 ${this.formatDate(article.pubDate)}</span>
+                                ${article.CreatedBy ? `<span>👤 Created by: ${this.escapeHtml(article.CreatedBy)}</span>` : ''}
+                                ${article.LastModifiedBy ? `<span>✏️ Modified by: ${this.escapeHtml(article.LastModifiedBy)}</span>` : ''}
+                                ${article.LastModifiedAt ? `<span>🕒 Last modified: ${this.formatDate(article.LastModifiedAt)}</span>` : ''}
+                            </div>
                         </div>
                     </article>
                 `).join('');
