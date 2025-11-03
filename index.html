@@ -326,8 +326,17 @@
    </div>
   </div>
   <script>
-        // RSS Parser utility with enhanced CORS proxy handling and better error recovery
+        /**
+         * RSS Parser utility with enhanced CORS proxy handling and better error recovery
+         * Implements retry logic across multiple proxy services with exponential backoff
+         */
         class RSSParser {
+            /**
+             * Parses an RSS feed from the given URL using multiple proxy fallbacks
+             * @param {string} url - The RSS feed URL to parse
+             * @returns {Promise<Array>} Array of parsed article objects
+             * @throws {Error} If all proxy attempts fail
+             */
             static async parseRSSFeed(url) {
                 // Enhanced proxy list with more reliable options and better Greek site support
                 const proxies = [
@@ -553,6 +562,12 @@
                 throw new Error(errorMessage);
             }
             
+            /**
+             * Generates a helpful error message based on the URL and error type
+             * @param {string} url - The RSS feed URL that failed
+             * @param {string} lastError - The last error message received
+             * @returns {string} A user-friendly error message with suggestions
+             */
             static getHelpfulErrorMessage(url, lastError) {
                 // Provide specific guidance based on the URL and error type
                 if (lastError.includes('403') || lastError.includes('Forbidden')) {
@@ -591,6 +606,12 @@
                 return `Αποτυχία φόρτωσης πηγής RSS. Δοκιμάστε μια από τις επαληθευμένες πηγές (TechCrunch, BBC, CNN). Σφάλμα: ${lastError}`;
             }
             
+            /**
+             * Parses JSON format RSS feed data (from rss2json proxy)
+             * @param {Object} jsonData - Parsed JSON data from the proxy
+             * @returns {Array<Object>} Array of article objects
+             * @throws {Error} If JSON feed parsing fails
+             */
             static parseJsonFeed(jsonData) {
                 try {
                     const articles = [];
@@ -628,6 +649,12 @@
                 }
             }
             
+            /**
+             * Parses XML format RSS/Atom feed data
+             * @param {string} xmlContent - Raw XML content string
+             * @returns {Array<Object>} Array of article objects
+             * @throws {Error} If XML parsing fails
+             */
             static parseXML(xmlContent) {
                 try {
                     const parser = new DOMParser();
@@ -708,47 +735,104 @@
                 }
             }
             
+            /**
+             * Parses date strings in various formats with timezone handling
+             * Supports ISO 8601, Greek date formats (DD/MM/YYYY, DD-MM-YYYY), and RFC dates
+             * @param {string} dateString - Date string to parse
+             * @returns {string} ISO 8601 formatted date string
+             */
             static parseDate(dateString) {
                 try {
-                    // Try parsing the date string
+                    if (!dateString) return new Date().toISOString();
+                    
+                    // Try parsing the date string directly (handles ISO 8601, RFC 2822)
                     const date = new Date(dateString);
                     
                     // Check if date is valid
-                    if (isNaN(date.getTime())) {
-                        // Try some common Greek date formats
-                        const greekFormats = [
-                            /(\d{1,2})\/(\d{1,2})\/(\d{4})/,  // DD/MM/YYYY
-                            /(\d{1,2})-(\d{1,2})-(\d{4})/,   // DD-MM-YYYY
-                            /(\d{4})-(\d{1,2})-(\d{1,2})/    // YYYY-MM-DD
-                        ];
-                        
-                        for (const format of greekFormats) {
-                            const match = dateString.match(format);
-                            if (match) {
-                                const [, p1, p2, p3] = match;
-                                // Assume DD/MM/YYYY or DD-MM-YYYY format for first two
-                                if (format === greekFormats[2]) {
-                                    return new Date(p1, p2 - 1, p3).toISOString();
-                                } else {
-                                    return new Date(p3, p2 - 1, p1).toISOString();
-                                }
-                            }
-                        }
-                        
-                        // If all parsing fails, use current date
-                        return new Date().toISOString();
+                    if (!isNaN(date.getTime())) {
+                        return date.toISOString();
                     }
                     
-                    return date.toISOString();
+                    // Try common date formats
+                    const formats = [
+                        // DD/MM/YYYY HH:mm:ss
+                        /(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})/,
+                        // DD/MM/YYYY HH:mm
+                        /(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{1,2})/,
+                        // DD/MM/YYYY
+                        /(\d{1,2})\/(\d{1,2})\/(\d{4})/,
+                        // DD-MM-YYYY HH:mm:ss
+                        /(\d{1,2})-(\d{1,2})-(\d{4})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})/,
+                        // DD-MM-YYYY HH:mm
+                        /(\d{1,2})-(\d{1,2})-(\d{4})\s+(\d{1,2}):(\d{1,2})/,
+                        // DD-MM-YYYY
+                        /(\d{1,2})-(\d{1,2})-(\d{4})/,
+                        // YYYY-MM-DD HH:mm:ss
+                        /(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2}):(\d{1,2})/,
+                        // YYYY-MM-DD HH:mm
+                        /(\d{4})-(\d{1,2})-(\d{1,2})\s+(\d{1,2}):(\d{1,2})/,
+                        // YYYY-MM-DD
+                        /(\d{4})-(\d{1,2})-(\d{1,2})/,
+                        // DD.MM.YYYY (European format)
+                        /(\d{1,2})\.(\d{1,2})\.(\d{4})/,
+                        // YYYY/MM/DD
+                        /(\d{4})\/(\d{1,2})\/(\d{1,2})/
+                    ];
+                    
+                    for (let i = 0; i < formats.length; i++) {
+                        const format = formats[i];
+                        const match = dateString.match(format);
+                        if (match) {
+                            const groups = match.slice(1);
+                            let parsedDate;
+                            
+                            // Handle different format patterns
+                            if (i <= 2) {
+                                // DD/MM/YYYY formats
+                                const [day, month, year, hour = 0, minute = 0, second = 0] = groups;
+                                parsedDate = new Date(year, month - 1, day, hour, minute, second);
+                            } else if (i <= 5) {
+                                // DD-MM-YYYY formats
+                                const [day, month, year, hour = 0, minute = 0, second = 0] = groups;
+                                parsedDate = new Date(year, month - 1, day, hour, minute, second);
+                            } else if (i <= 8) {
+                                // YYYY-MM-DD formats
+                                const [year, month, day, hour = 0, minute = 0, second = 0] = groups;
+                                parsedDate = new Date(year, month - 1, day, hour, minute, second);
+                            } else if (i === 9) {
+                                // DD.MM.YYYY format
+                                const [day, month, year] = groups;
+                                parsedDate = new Date(year, month - 1, day);
+                            } else if (i === 10) {
+                                // YYYY/MM/DD format
+                                const [year, month, day] = groups;
+                                parsedDate = new Date(year, month - 1, day);
+                            }
+                            
+                            if (parsedDate && !isNaN(parsedDate.getTime())) {
+                                return parsedDate.toISOString();
+                            }
+                        }
+                    }
+                    
+                    // If all parsing fails, use current date
+                    console.warn('⚠️ Date parsing failed, using current date:', dateString);
+                    return new Date().toISOString();
                 } catch (error) {
-                    console.warn('Date parsing failed:', error);
+                    console.warn('❌ Date parsing error:', error.message);
                     return new Date().toISOString();
                 }
             }
         }
 
-        // Greek Tax News Hub - Main Application
+        /**
+         * Greek Tax News Hub - Main Application
+         * Manages RSS feeds, articles, and user interactions
+         */
         class GreekTaxNewsApp {
+            /**
+             * Initialize the Greek Tax News Hub application
+             */
             constructor() {
                 this.articles = [];
                 this.feeds = new Map();
@@ -825,6 +909,11 @@
                 this.init();
             }
             
+            /**
+             * Initialize the application and set up SDKs and event listeners
+             * @async
+             * @returns {Promise<void>}
+             */
             async init() {
                 console.log('🚀 Initializing Greek Tax News Hub...');
                 
@@ -890,6 +979,9 @@
                 console.log('✅ App initialized successfully');
             }
             
+            /**
+             * Update UI elements with current configuration
+             */
             updateUI() {
                 const config = this.config;
                 
@@ -899,6 +991,9 @@
                 document.getElementById('manage-button-text').textContent = config.manage_button_text || "Διαχείριση";
             }
             
+            /**
+             * Set up all event listeners for the application
+             */
             setupEventListeners() {
                 // Refresh button
                 document.getElementById('refresh-btn').addEventListener('click', () => this.refreshAllFeeds());
@@ -951,6 +1046,15 @@
                 });
             }
             
+            /**
+             * Add a new RSS feed to the application
+             * @param {string} url - RSS feed URL
+             * @param {string} name - Display name for the feed
+             * @param {string} category - Category of the feed (default: 'news')
+             * @param {string} reliability - Reliability rating: 'high', 'medium', or 'low' (default: 'medium')
+             * @async
+             * @returns {Promise<void>}
+             */
             async addFeed(url, name, category = 'news', reliability = 'medium') {
                 // Check if feed already exists
                 if (this.feeds.has(url)) {
@@ -977,6 +1081,11 @@
                 await this.fetchFeedArticles(feed);
             }
             
+            /**
+             * Add a custom RSS feed from user input
+             * @async
+             * @returns {Promise<void>}
+             */
             async addCustomFeed() {
                 const urlInput = document.getElementById('custom-rss-url');
                 const nameInput = document.getElementById('custom-rss-name');
@@ -1001,6 +1110,11 @@
                 nameInput.value = '';
             }
             
+            /**
+             * Add all popular feeds to the application
+             * @async
+             * @returns {Promise<void>}
+             */
             async addAllPopularFeeds() {
                 let addedCount = 0;
                 
@@ -1024,6 +1138,11 @@
                 }
             }
             
+            /**
+             * Add all accounting feeds to the application
+             * @async
+             * @returns {Promise<void>}
+             */
             async addAllAccountingFeeds() {
                 let addedCount = 0;
                 
@@ -1047,6 +1166,12 @@
                 }
             }
             
+            /**
+             * Refresh all enabled RSS feeds
+             * Implements retry logic and error handling for each feed
+             * @async
+             * @returns {Promise<void>}
+             */
             async refreshAllFeeds() {
                 if (this.isLoading) {
                     this.showNotification('Η ανανέωση είναι ήδη σε εξέλιξη...', 'info');
@@ -1090,6 +1215,13 @@
                 }
             }
             
+            /**
+             * Fetch articles from a specific RSS feed with error handling
+             * @param {Object} feed - Feed object containing url, name, category, etc.
+             * @async
+             * @returns {Promise<number>} Number of new articles added
+             * @throws {Error} If feed fetch fails
+             */
             async fetchFeedArticles(feed) {
                 try {
                     console.log(`🔄 Fetching articles from: ${feed.name}`);
@@ -1139,6 +1271,9 @@
                 }
             }
             
+            /**
+             * Render all articles to the DOM
+             */
             renderArticles() {
                 const grid = document.getElementById('articles-grid');
                 const emptyState = document.getElementById('empty-state');
@@ -1166,6 +1301,11 @@
                 document.getElementById('article-count').textContent = `(${this.filteredArticles.length})`;
             }
             
+            /**
+             * Create HTML for an article card
+             * @param {Object} article - Article object
+             * @returns {string} HTML string for the article card
+             */
             createArticleCard(article) {
                 const publishDate = new Date(article.pub_date).toLocaleDateString('el-GR', {
                     year: 'numeric',
@@ -1230,6 +1370,9 @@
                 `;
             }
             
+            /**
+             * Set up event listeners for article cards (bookmark, read, links)
+             */
             setupArticleEventListeners() {
                 // Bookmark buttons
                 document.querySelectorAll('.bookmark-btn').forEach(btn => {
@@ -1259,6 +1402,12 @@
                 });
             }
             
+            /**
+             * Toggle bookmark status for an article
+             * @param {string} articleId - Article backend ID
+             * @async
+             * @returns {Promise<void>}
+             */
             async toggleBookmark(articleId) {
                 const article = this.articles.find(a => a.__backendId === articleId);
                 if (article && window.dataSdk) {
@@ -1272,6 +1421,12 @@
                 }
             }
             
+            /**
+             * Toggle read status for an article
+             * @param {string} articleId - Article backend ID
+             * @async
+             * @returns {Promise<void>}
+             */
             async toggleRead(articleId) {
                 const article = this.articles.find(a => a.__backendId === articleId);
                 if (article && window.dataSdk) {
@@ -1280,6 +1435,12 @@
                 }
             }
             
+            /**
+             * Mark an article as read (if not already read)
+             * @param {string} articleId - Article backend ID
+             * @async
+             * @returns {Promise<void>}
+             */
             async markAsRead(articleId) {
                 const article = this.articles.find(a => a.__backendId === articleId);
                 if (article && !article.read && window.dataSdk) {
@@ -1288,6 +1449,9 @@
                 }
             }
             
+            /**
+             * Apply current filters to the article list
+             */
             applyFilters() {
                 const sourceFilter = document.getElementById('source-filter').value;
                 const categoryFilter = document.getElementById('category-filter').value;
@@ -1309,6 +1473,9 @@
                 });
             }
             
+            /**
+             * Clear all applied filters
+             */
             clearFilters() {
                 document.getElementById('source-filter').value = '';
                 document.getElementById('category-filter').value = '';
@@ -1316,6 +1483,9 @@
                 this.renderArticles();
             }
             
+            /**
+             * Update filter dropdown options based on available sources
+             */
             updateFilters() {
                 const sourceFilter = document.getElementById('source-filter');
                 const sources = [...new Set(this.articles.map(a => a.source))].sort();
@@ -1332,6 +1502,9 @@
                 });
             }
             
+            /**
+             * Update statistics display (feed count, article count)
+             */
             updateStats() {
                 const totalFeeds = this.feeds.size;
                 const totalArticles = this.articles.length;
@@ -1340,15 +1513,24 @@
                 document.getElementById('total-articles').textContent = totalArticles;
             }
             
+            /**
+             * Open the feed management modal
+             */
             openFeedManagement() {
                 this.renderFeedManagement();
                 document.getElementById('feed-management-modal').classList.remove('hidden');
             }
             
+            /**
+             * Close the feed management modal
+             */
             closeFeedManagement() {
                 document.getElementById('feed-management-modal').classList.add('hidden');
             }
             
+            /**
+             * Render the feed management modal content
+             */
             renderFeedManagement() {
                 const feedsList = document.getElementById('feeds-list');
                 const noFeedsMessage = document.getElementById('no-feeds-message');
@@ -1365,6 +1547,11 @@
                 feedsList.innerHTML = feedsArray.map(feed => this.createFeedItem(feed)).join('');
             }
             
+            /**
+             * Create HTML for a feed item in the management modal
+             * @param {Object} feed - Feed object
+             * @returns {string} HTML string for the feed item
+             */
             createFeedItem(feed) {
                 const lastFetch = feed.lastFetch ? 
                     new Date(feed.lastFetch).toLocaleDateString('el-GR', {
@@ -1411,6 +1598,10 @@
                 `;
             }
             
+            /**
+             * Toggle auto-refresh functionality
+             * @param {boolean} enabled - Whether to enable auto-refresh
+             */
             toggleAutoRefresh(enabled) {
                 const intervalSelect = document.getElementById('refresh-interval');
                 intervalSelect.disabled = !enabled;
@@ -1428,6 +1619,10 @@
                 }
             }
             
+            /**
+             * Set the auto-refresh interval
+             * @param {number} interval - Interval in milliseconds
+             */
             setRefreshInterval(interval) {
                 if (this.autoRefreshInterval) {
                     clearInterval(this.autoRefreshInterval);
@@ -1439,6 +1634,10 @@
                 }, interval);
             }
             
+            /**
+             * Import feeds from an OPML file
+             * Creates a file input and processes the selected file
+             */
             importOPML() {
                 // Create file input
                 const input = document.createElement('input');
@@ -1488,6 +1687,12 @@
                 input.click();
             }
             
+            /**
+             * Parse an OPML XML file and extract RSS feed information
+             * @param {string} opmlText - OPML XML content as string
+             * @returns {Array<Object>} Array of feed objects
+             * @throws {Error} If OPML parsing fails
+             */
             parseOPML(opmlText) {
                 try {
                     const parser = new DOMParser();
@@ -1527,6 +1732,10 @@
                 }
             }
             
+            /**
+             * Export feeds to OPML format
+             * Creates and downloads an OPML file containing all feeds
+             */
             exportOPML() {
                 const feedsArray = Array.from(this.feeds.values());
                 
@@ -1587,6 +1796,11 @@
                 this.showNotification(`Εξήχθησαν ${feedsArray.length} πηγές σε αρχείο OPML`, 'success');
             }
             
+            /**
+             * Get display name for a category code
+             * @param {string} category - Category code
+             * @returns {string} Localized category name
+             */
             getCategoryDisplayName(category) {
                 const categoryNames = {
                     'news': 'Νέα',
@@ -1603,6 +1817,11 @@
                 return categoryNames[category] || category.charAt(0).toUpperCase() + category.slice(1);
             }
             
+            /**
+             * Escape XML special characters
+             * @param {string} text - Text to escape
+             * @returns {string} XML-safe text
+             */
             escapeXml(text) {
                 if (!text) return '';
                 return text.toString()
@@ -1613,6 +1832,10 @@
                     .replace(/'/g, '&#39;');
             }
             
+            /**
+             * Export all articles and feeds data as JSON
+             * Creates and downloads a backup JSON file
+             */
             exportData() {
                 const data = {
                     articles: this.articles,
@@ -1633,6 +1856,10 @@
                 this.showNotification('Τα δεδομένα εξήχθησαν επιτυχώς', 'success');
             }
             
+            /**
+             * Clear all data (articles and feeds) with confirmation
+             * Shows inline confirmation dialog in the modal
+             */
             clearAllData() {
                 // Create inline confirmation in modal
                 const modalContent = document.querySelector('#feed-management-modal .p-6');
@@ -1684,6 +1911,10 @@
                 });
             }
             
+            /**
+             * Set loading state for the application
+             * @param {boolean} loading - Whether the app is loading
+             */
             setLoading(loading) {
                 this.isLoading = loading;
                 const refreshBtn = document.getElementById('refresh-btn');
@@ -1703,6 +1934,11 @@
                 }
             }
             
+            /**
+             * Show a toast notification to the user
+             * @param {string} message - Message to display
+             * @param {string} type - Notification type: 'info', 'success', 'warning', or 'error'
+             */
             showNotification(message, type = 'info') {
                 // Create toast notification
                 const toast = document.createElement('div');
@@ -1728,6 +1964,12 @@
             }
             
             // Utility methods
+            
+            /**
+             * Validate if a string is a valid URL
+             * @param {string} string - String to validate
+             * @returns {boolean} True if valid URL, false otherwise
+             */
             isValidUrl(string) {
                 try {
                     new URL(string);
