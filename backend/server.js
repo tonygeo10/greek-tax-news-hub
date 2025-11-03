@@ -31,6 +31,10 @@ const parser = new Parser({
     maxRedirects: 5,
 });
 
+// User and timestamp tracking constants
+const CURRENT_USER = 'tonygeo10';
+const getCurrentTimestamp = () => new Date().toISOString().replace('T', ' ').substring(0, 19);
+
 app.use(cors());
 app.use(express.json());
 
@@ -156,24 +160,36 @@ app.get('/api/aade-news', async (req, res) => {
                 .input('pageSize', sql.Int, pageSize)
                 .input('offset', sql.Int, offset)
                 .query(`
-                    SELECT * FROM (
-                        SELECT *, ROW_NUMBER() OVER (ORDER BY PublishDate DESC) as RowNum
-                        FROM Articles
-                        WHERE FeedID = 1
-                    ) AS Paginated
-                    WHERE RowNum > @offset AND RowNum <= (@offset + @pageSize)
+                    SELECT *, ROW_NUMBER() OVER (ORDER BY PublishDate DESC) as RowNum
+                    FROM Articles
+                    WHERE FeedID = 1
+                    ORDER BY PublishDate DESC
+                    OFFSET @offset ROWS
+                    FETCH NEXT @pageSize ROWS ONLY
                 `);
 
             const totalCount = await pool.request()
                 .query('SELECT COUNT(*) as total FROM Articles WHERE FeedID = 1');
 
+            // Add user and timestamp tracking to articles
+            const articlesWithTracking = result.recordset.map(article => ({
+                ...article,
+                CreatedBy: article.CreatedBy || CURRENT_USER,
+                LastModifiedBy: article.LastModifiedBy || CURRENT_USER,
+                LastModifiedAt: article.LastModifiedAt || getCurrentTimestamp()
+            }));
+
             res.json({
-                articles: result.recordset,
+                articles: articlesWithTracking,
                 pagination: {
                     page,
                     pageSize,
                     totalItems: totalCount.recordset[0].total,
                     totalPages: Math.ceil(totalCount.recordset[0].total / pageSize)
+                },
+                tracking: {
+                    user: CURRENT_USER,
+                    timestamp: getCurrentTimestamp()
                 }
             });
         } else {
@@ -184,7 +200,10 @@ app.get('/api/aade-news', async (req, res) => {
                 description: item.contentSnippet || '',
                 link: item.link,
                 pubDate: parseDate(item.pubDate),
-                source: 'rss'
+                source: 'rss',
+                CreatedBy: CURRENT_USER,
+                LastModifiedBy: CURRENT_USER,
+                LastModifiedAt: getCurrentTimestamp()
             }));
 
             const paginatedArticles = articles.slice(offset, offset + pageSize);
@@ -196,6 +215,10 @@ app.get('/api/aade-news', async (req, res) => {
                     pageSize,
                     totalItems: articles.length,
                     totalPages: Math.ceil(articles.length / pageSize)
+                },
+                tracking: {
+                    user: CURRENT_USER,
+                    timestamp: getCurrentTimestamp()
                 }
             });
         }
@@ -212,19 +235,147 @@ app.get('/api/feeds', async (req, res) => {
     try {
         if (pool) {
             const result = await pool.request().query('SELECT * FROM RSSFeeds WHERE IsActive = 1');
-            res.json(result.recordset);
+            
+            // Add user and timestamp tracking to feeds
+            const feedsWithTracking = result.recordset.map(feed => ({
+                ...feed,
+                LastModifiedBy: feed.LastModifiedBy || CURRENT_USER,
+                LastModifiedAt: feed.LastModifiedAt || getCurrentTimestamp()
+            }));
+            
+            res.json({
+                feeds: feedsWithTracking,
+                tracking: {
+                    user: CURRENT_USER,
+                    timestamp: getCurrentTimestamp()
+                }
+            });
         } else {
-            res.json([{
-                FeedID: 1,
-                FeedName: 'AADE - Δελτία Τύπου',
-                FeedURL: 'https://www.aade.gr/deltia-typoy-anakoinoseis?format=rss',
-                Category: 'Tax Authority'
-            }]);
+            res.json({
+                feeds: [{
+                    FeedID: 1,
+                    FeedName: 'AADE - Δελτία Τύπου',
+                    FeedURL: 'https://www.aade.gr/deltia-typoy-anakoinoseis?format=rss',
+                    Category: 'Tax Authority',
+                    CreatedBy: CURRENT_USER,
+                    LastModifiedBy: CURRENT_USER,
+                    LastModifiedAt: getCurrentTimestamp()
+                }],
+                tracking: {
+                    user: CURRENT_USER,
+                    timestamp: getCurrentTimestamp()
+                }
+            });
         }
     } catch (err) {
         logger.error('Error fetching feeds:', err);
         res.status(500).json({ 
             error: 'Failed to fetch feeds', 
+            details: err.message 
+        });
+    }
+});
+
+/**
+ * Database schema migration endpoint to add tracking columns
+ * This endpoint adds CreatedBy, LastModifiedBy, and LastModifiedAt columns to tables
+ */
+app.post('/api/migrate-schema', async (req, res) => {
+    try {
+        if (!pool) {
+            return res.status(503).json({ 
+                error: 'Database not connected',
+                message: 'Cannot perform schema migration without database connection'
+            });
+        }
+
+        const migrations = [];
+        
+        // Add columns to Articles table if they don't exist
+        try {
+            await pool.request().query(`
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Articles') AND name = 'CreatedBy')
+                BEGIN
+                    ALTER TABLE Articles ADD CreatedBy NVARCHAR(100) DEFAULT '${CURRENT_USER}';
+                END
+            `);
+            migrations.push('Articles.CreatedBy added');
+        } catch (err) {
+            logger.warn('Articles.CreatedBy migration warning:', err.message);
+        }
+
+        try {
+            await pool.request().query(`
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Articles') AND name = 'LastModifiedBy')
+                BEGIN
+                    ALTER TABLE Articles ADD LastModifiedBy NVARCHAR(100) DEFAULT '${CURRENT_USER}';
+                END
+            `);
+            migrations.push('Articles.LastModifiedBy added');
+        } catch (err) {
+            logger.warn('Articles.LastModifiedBy migration warning:', err.message);
+        }
+
+        try {
+            await pool.request().query(`
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Articles') AND name = 'LastModifiedAt')
+                BEGIN
+                    ALTER TABLE Articles ADD LastModifiedAt DATETIME DEFAULT GETUTCDATE();
+                END
+            `);
+            migrations.push('Articles.LastModifiedAt added');
+        } catch (err) {
+            logger.warn('Articles.LastModifiedAt migration warning:', err.message);
+        }
+
+        // Add columns to RSSFeeds table if they don't exist
+        try {
+            await pool.request().query(`
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('RSSFeeds') AND name = 'CreatedBy')
+                BEGIN
+                    ALTER TABLE RSSFeeds ADD CreatedBy NVARCHAR(100) DEFAULT '${CURRENT_USER}';
+                END
+            `);
+            migrations.push('RSSFeeds.CreatedBy added');
+        } catch (err) {
+            logger.warn('RSSFeeds.CreatedBy migration warning:', err.message);
+        }
+
+        try {
+            await pool.request().query(`
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('RSSFeeds') AND name = 'LastModifiedBy')
+                BEGIN
+                    ALTER TABLE RSSFeeds ADD LastModifiedBy NVARCHAR(100) DEFAULT '${CURRENT_USER}';
+                END
+            `);
+            migrations.push('RSSFeeds.LastModifiedBy added');
+        } catch (err) {
+            logger.warn('RSSFeeds.LastModifiedBy migration warning:', err.message);
+        }
+
+        try {
+            await pool.request().query(`
+                IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('RSSFeeds') AND name = 'LastModifiedAt')
+                BEGIN
+                    ALTER TABLE RSSFeeds ADD LastModifiedAt DATETIME DEFAULT GETUTCDATE();
+                END
+            `);
+            migrations.push('RSSFeeds.LastModifiedAt added');
+        } catch (err) {
+            logger.warn('RSSFeeds.LastModifiedAt migration warning:', err.message);
+        }
+
+        logger.info('Schema migration completed:', migrations);
+        res.json({
+            success: true,
+            migrations,
+            timestamp: getCurrentTimestamp(),
+            user: CURRENT_USER
+        });
+    } catch (err) {
+        logger.error('Schema migration failed:', err);
+        res.status(500).json({ 
+            error: 'Schema migration failed', 
             details: err.message 
         });
     }
