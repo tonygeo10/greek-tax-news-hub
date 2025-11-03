@@ -339,8 +339,8 @@ process.on('unhandledRejection', (reason, promise) => {
 
 process.on('uncaughtException', (error) => {
     logger.error('Uncaught Exception:', { error: error.message, stack: error.stack });
-    // Give time for logging before exit
-    setTimeout(() => process.exit(1), 1000);
+    // Set exit code for graceful shutdown
+    process.exitCode = 1;
 });
 
 // Graceful shutdown
