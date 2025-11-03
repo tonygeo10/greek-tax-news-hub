@@ -114,7 +114,7 @@
                                 ${this.escapeHtml(article.title)}
                             </a>
                         </h2>
-                        <p class="text-gray-600 mb-4">${this.escapeHtml(article.description)}</p>
+                        <p class="text-gray-600 mb-4">${this.escapeHtml(this.cleanDescription(article.description))}</p>
                         <div class="text-sm text-gray-500">
                             ${this.formatDate(article.pubDate)}
                         </div>
@@ -125,6 +125,26 @@
                     ${articlesHtml}
                     ${this.renderPagination()}
                 `;
+            }
+
+            /**
+             * Clean HTML and format description
+             * @param {string} description - Raw description
+             * @returns {string} Cleaned description
+             */
+            cleanDescription(description) {
+                if (!description) return '';
+                
+                return description
+                    .replace(/<[^>]*>/g, '') // Remove HTML tags
+                    .replace(/&nbsp;/g, ' ')
+                    .replace(/&amp;/g, '&')
+                    .replace(/&lt;/g, '<')
+                    .replace(/&gt;/g, '>')
+                    .replace(/&quot;/g, '"')
+                    .replace(/&#39;/g, "'")
+                    .trim()
+                    .substring(0, 500); // Limit to 500 characters
             }
 
             /**
@@ -220,18 +240,10 @@
             }
 
             /**
-             * Get notification CSS class
-             * @param {string} type - Notification type
-             * @returns {string} CSS class
+             * Setup event listeners
              */
-            getNotificationClass(type) {
-                const classes = {
-                    success: 'bg-green-500 text-white',
-                    error: 'bg-red-500 text-white',
-                    warning: 'bg-yellow-500 text-white',
-                    info: 'bg-blue-500 text-white'
-                };
-                return classes[type] || classes.info;
+            setupEventListeners() {
+                // No setup needed for now
             }
         }
 
