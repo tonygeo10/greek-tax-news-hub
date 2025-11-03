@@ -217,7 +217,8 @@ app.get('/api/aade-news', async (req, res) => {
                     .input('limit', sql.Int, limit)
                     .input('offset', sql.Int, offset)
                     .query(`
-                        SELECT * FROM Articles 
+                        SELECT ArticleID, Title, Description, Link, PublishDate, FeedID, CreatedAt
+                        FROM Articles 
                         WHERE FeedID = 1 
                         ORDER BY PublishDate DESC
                         OFFSET @offset ROWS
