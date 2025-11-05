@@ -54,6 +54,26 @@ class RSSParser {
                 this.clearAllFeeds();
             });
         }
+
+        // Event delegation for dynamically created elements
+        document.addEventListener('click', (e) => {
+            // Handle feed removal
+            if (e.target.hasAttribute('data-remove-feed')) {
+                const feedUrl = e.target.getAttribute('data-remove-feed');
+                this.removeFeed(feedUrl);
+            }
+            
+            // Handle pagination
+            if (e.target.hasAttribute('data-page')) {
+                const page = parseInt(e.target.getAttribute('data-page'));
+                this.goToPage(page);
+            }
+            
+            // Handle retry button
+            if (e.target.hasAttribute('data-retry')) {
+                this.loadAllFeeds();
+            }
+        });
     }
 
     /**
@@ -194,7 +214,16 @@ class RSSParser {
     async parseFeed(feedUrl) {
         try {
             // Check if it's a localhost URL to bypass CORS proxy
-            const isLocalhost = feedUrl.includes('localhost') || feedUrl.includes('127.0.0.1');
+            let isLocalhost = false;
+            try {
+                const urlObj = new URL(feedUrl);
+                isLocalhost = urlObj.hostname === 'localhost' || 
+                             urlObj.hostname === '127.0.0.1' || 
+                             urlObj.hostname === '[::1]';
+            } catch (e) {
+                // Invalid URL, let it fail in fetch
+            }
+            
             const fetchUrl = isLocalhost ? feedUrl : this.corsProxy + encodeURIComponent(feedUrl);
             
             const response = await fetch(fetchUrl);
@@ -278,7 +307,7 @@ class RSSParser {
         feedsList.innerHTML = this.feeds.map(feed => `
             <div class="feed-tag">
                 <span>${this.extractDomain(feed)}</span>
-                <button onclick="rssParser.removeFeed('${this.escapeHtml(feed)}')" 
+                <button data-remove-feed="${this.escapeHtml(feed)}" 
                         title="Remove feed">×</button>
             </div>
         `).join('');
@@ -341,7 +370,7 @@ class RSSParser {
         // Previous button
         paginationHtml += `
             <button ${this.currentPage === 1 ? 'disabled' : ''} 
-                    onclick="rssParser.goToPage(${this.currentPage - 1})">
+                    data-page="${this.currentPage - 1}">
                 ← Previous
             </button>
         `;
@@ -355,7 +384,8 @@ class RSSParser {
             ) {
                 paginationHtml += `
                     <button class="${i === this.currentPage ? 'active' : ''}"
-                            onclick="rssParser.goToPage(${i})">
+                            data-page="${i}"
+                            ${i === this.currentPage ? 'disabled' : ''}>
                         ${i}
                     </button>
                 `;
@@ -370,7 +400,7 @@ class RSSParser {
         // Next button
         paginationHtml += `
             <button ${this.currentPage === totalPages ? 'disabled' : ''} 
-                    onclick="rssParser.goToPage(${this.currentPage + 1})">
+                    data-page="${this.currentPage + 1}">
                 Next →
             </button>
         `;
@@ -414,7 +444,7 @@ class RSSParser {
                 <div class="error-state">
                     <h3>Error</h3>
                     <p>${this.escapeHtml(message)}</p>
-                    <button class="btn btn-primary mt-2" onclick="rssParser.loadAllFeeds()">
+                    <button class="btn btn-primary mt-2" data-retry="true">
                         Try Again
                     </button>
                 </div>
