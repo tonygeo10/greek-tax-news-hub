@@ -193,7 +193,11 @@ class RSSParser {
      */
     async parseFeed(feedUrl) {
         try {
-            const response = await fetch(this.corsProxy + encodeURIComponent(feedUrl));
+            // Check if it's a localhost URL to bypass CORS proxy
+            const isLocalhost = feedUrl.includes('localhost') || feedUrl.includes('127.0.0.1');
+            const fetchUrl = isLocalhost ? feedUrl : this.corsProxy + encodeURIComponent(feedUrl);
+            
+            const response = await fetch(fetchUrl);
             
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
