@@ -527,8 +527,9 @@ class RSSParser {
      */
     truncateText(text, maxLength) {
         if (!text) return '';
-        // Strip HTML tags
-        const stripped = text.replace(/<[^>]*>/g, '');
+        // Strip HTML tags - using DOMParser for safer HTML stripping
+        const doc = new DOMParser().parseFromString(text, 'text/html');
+        const stripped = doc.body.textContent || '';
         if (stripped.length <= maxLength) return stripped;
         return stripped.substring(0, maxLength) + '...';
     }
