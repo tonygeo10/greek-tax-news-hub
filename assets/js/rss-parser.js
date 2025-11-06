@@ -1,6 +1,9 @@
 // Enhanced RSS Parser for Greek Tax News
 class GreekTaxRSSParser {
     constructor() {
+        // Note: Using third-party CORS proxies introduces some security considerations.
+        // For production use, consider implementing your own proxy service
+        // or validating responses more thoroughly.
         this.corsProxies = [
             'https://api.allorigins.win/get?url=',
             'https://api.rss2json.com/v1/api.json?rss_url='

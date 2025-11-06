@@ -45,9 +45,12 @@ class GreekTaxStorageManager {
 
         articles.unshift(article);
         
-        // Keep only latest 1000 articles
-        if (articles.length > 1000) {
-            articles.splice(1000);
+        // Keep only latest articles based on config
+        const maxArticles = typeof CONFIG !== 'undefined' && CONFIG.SETTINGS 
+            ? CONFIG.SETTINGS.MAX_ARTICLES_PER_FEED * 5 
+            : 1000;
+        if (articles.length > maxArticles) {
+            articles.splice(maxArticles);
         }
 
         return this.saveArticles(articles);
@@ -342,11 +345,14 @@ class GreekTaxStorageManager {
             const archived = this.loadArchived();
 
             let totalSize = 0;
-            for (let key in localStorage) {
-                if (key.startsWith('greekTaxNews_')) {
-                    totalSize += localStorage[key].length * 2; // UTF-16 uses 2 bytes per char
-                }
-            }
+            // More efficient iteration through localStorage keys
+            const appKeys = Object.keys(localStorage).filter(key => 
+                key.startsWith('greekTaxNews_')
+            );
+            
+            appKeys.forEach(key => {
+                totalSize += localStorage[key].length * 2; // UTF-16 uses 2 bytes per char
+            });
 
             return {
                 articleCount: articles.length,

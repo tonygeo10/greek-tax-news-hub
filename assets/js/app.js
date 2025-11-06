@@ -218,11 +218,12 @@ class GreekTaxNewsHub {
         // Add only new articles
         const uniqueNew = newArticles.filter(a => !existingIds.has(a.id));
         
-        this.articles = [...uniqueNew, ...this.articles];
+        this.articles = uniqueNew.concat(this.articles);
         
-        // Keep only latest 1000 articles
-        if (this.articles.length > 1000) {
-            this.articles = this.articles.slice(0, 1000);
+        // Keep only latest articles based on config
+        const maxArticles = CONFIG?.SETTINGS?.MAX_ARTICLES_PER_FEED * this.feeds.length || 1000;
+        if (this.articles.length > maxArticles) {
+            this.articles = this.articles.slice(0, maxArticles);
         }
     }
 
@@ -554,7 +555,7 @@ class GreekTaxNewsHub {
 
     exportToText() {
         let text = 'GREEK TAX NEWS HUB - EXPORT\n';
-        text += '=' .repeat(50) + '\n\n';
+        text += '='.repeat(50) + '\n\n';
 
         this.filteredArticles.forEach((article, index) => {
             text += `${index + 1}. ${article.title}\n`;
