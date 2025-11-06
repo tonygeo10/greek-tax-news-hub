@@ -3,240 +3,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Greek Tax News Hub</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <meta name="description" content="Greek Tax News Hub - Κεντρικός κόμβος φορολογικών ειδήσεων για επαγγελματίες και επιχειρήσεις στην Ελλάδα">
+    <meta name="keywords" content="Greek tax, AADE, φορολογία, φορολογικά νέα, Ελληνική φορολογία, tax news Greece">
+    <meta name="author" content="Greek Tax News Hub">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Greek Tax News Hub">
+    <meta property="og:description" content="Κεντρικός κόμβος φορολογικών ειδήσεων για την Ελλάδα">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Greek Tax News Hub">
+    
+    <title>Greek Tax News Hub - Κεντρικός Κόμβος Φορολογικών Ειδήσεων</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
 </head>
-<body class="bg-gray-100">
-    <div id="app" class="container mx-auto px-4 py-8">
-        <!-- App content will be dynamically inserted here -->
-    </div>
-
-    <script>
-        class NewsHub {
-            constructor() {
-                this.feeds = new Map();
-                this.articles = [];
-                this.currentPage = 1;
-                this.pageSize = 20;
-                this.totalPages = 1;
-                this.isLoading = false;
-                this.retryDelay = 1000;
-                this.maxRetries = 3;
-
-                // Initialize with error handling
-                this.init().catch(console.error);
-            }
-
-            /**
-             * Initialize the application
-             * @returns {Promise<void>}
-             */
-            async init() {
-                try {
-                    await this.loadFeeds();
-                    await this.loadArticles();
-                    this.setupEventListeners();
-                } catch (error) {
-                    console.error('Initialization failed:', error);
-                    this.showNotification('Σφάλμα αρχικοποίησης', 'error');
-                }
-            }
-
-            /**
-             * Load feeds with retry mechanism
-             * @returns {Promise<void>}
-             */
-            async loadFeeds(retryCount = 0) {
-                try {
-                    const response = await fetch('/api/feeds');
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-
-                    const feeds = await response.json();
-                    feeds.forEach(feed => this.feeds.set(feed.FeedID, feed));
-                } catch (error) {
-                    if (retryCount < this.maxRetries) {
-                        await new Promise(resolve => 
-                            setTimeout(resolve, this.retryDelay * Math.pow(2, retryCount))
-                        );
-                        return this.loadFeeds(retryCount + 1);
-                    }
-                    throw error;
-                }
-            }
-
-            /**
-             * Load articles with pagination
-             * @param {number} page - Page number
-             * @returns {Promise<void>}
-             */
-            async loadArticles(page = 1) {
-                try {
-                    this.isLoading = true;
-                    const response = await fetch(`/api/aade-news?page=${page}&pageSize=${this.pageSize}`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-
-                    const data = await response.json();
-                    this.articles = data.articles;
-                    this.currentPage = page;
-                    this.totalPages = data.pagination.totalPages;
-
-                    this.renderArticles();
-                } catch (error) {
-                    console.error('Failed to load articles:', error);
-                    this.showNotification('Σφάλμα φόρτωσης άρθρων', 'error');
-                } finally {
-                    this.isLoading = false;
-                }
-            }
-
-            /**
-             * Render articles with proper date formatting
-             */
-            renderArticles() {
-                const container = document.getElementById('app');
-                if (!this.articles.length) {
-                    container.innerHTML = `
-                        <div class="text-center py-10">
-                            <p class="text-gray-500">Δεν βρέθηκαν άρθρα</p>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/" class="logo">
+                    <span class="logo-icon">🏛️</span>
+                    <div>
+                        <div>Greek Tax News Hub</div>
+                        <div style="font-size: 0.6rem; font-weight: 400; color: var(--text-secondary);">
+                            Κεντρικός Κόμβος Φορολογικών Ειδήσεων
                         </div>
-                    `;
-                    return;
-                }
-
-                const articlesHtml = this.articles.map(article => `
-                    <article class="bg-white rounded-lg shadow-md p-6 mb-4">
-                        <h2 class="text-xl font-semibold mb-2">
-                            <a href="${article.link}" target="_blank" class="text-blue-600 hover:text-blue-800">
-                                ${this.escapeHtml(article.title)}
-                            </a>
-                        </h2>
-                        <p class="text-gray-600 mb-4">${this.escapeHtml(article.description)}</p>
-                        <div class="text-sm text-gray-500">
-                            ${this.formatDate(article.pubDate)}
-                        </div>
-                    </article>
-                `).join('');
-
-                container.innerHTML = `
-                    ${articlesHtml}
-                    ${this.renderPagination()}
-                `;
-            }
-
-            /**
-             * Render pagination controls
-             * @returns {string} Pagination HTML
-             */
-            renderPagination() {
-                if (this.totalPages <= 1) return '';
-
-                const pages = [];
-                for (let i = 1; i <= this.totalPages; i++) {
-                    if (
-                        i === 1 ||
-                        i === this.totalPages ||
-                        (i >= this.currentPage - 2 && i <= this.currentPage + 2)
-                    ) {
-                        pages.push(i);
-                    } else if (pages[pages.length - 1] !== '...') {
-                        pages.push('...');
-                    }
-                }
-
-                const paginationHtml = pages.map(page => {
-                    if (page === '...') {
-                        return '<span class="px-3 py-2">...</span>';
-                    }
-                    return `
-                        <button
-                            class="px-3 py-2 ${page === this.currentPage
-                                ? 'bg-blue-600 text-white'
-                                : 'text-blue-600 hover:bg-blue-100'} rounded"
-                            ${page === this.currentPage ? 'disabled' : ''}
-                            onclick="app.loadArticles(${page})"
-                        >
-                            ${page}
-                        </button>
-                    `;
-                }).join('');
-
-                return `
-                    <div class="flex justify-center space-x-2 mt-6">
-                        ${paginationHtml}
                     </div>
-                `;
-            }
+                </a>
+                <div class="header-actions">
+                    <button id="themeToggle" class="theme-toggle" title="Εναλλαγή θέματος">
+                        🌓
+                    </button>
+                    <button id="refreshBtn" class="btn btn-primary" title="Ανανέωση">
+                        🔄 Ανανέωση
+                    </button>
+                    <div class="export-menu">
+                        <button class="btn btn-secondary">
+                            📥 Εξαγωγή ▼
+                        </button>
+                        <div class="export-dropdown">
+                            <button id="exportPdf">📄 PDF (Print)</button>
+                            <button id="exportTxt">📝 Text</button>
+                            <button id="exportJson">💾 JSON</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
 
-            /**
-             * Format date for display
-             * @param {string} dateString - ISO date string
-             * @returns {string} Formatted date
-             */
-            formatDate(dateString) {
-                try {
-                    const date = new Date(dateString);
-                    if (isNaN(date.getTime())) {
-                        throw new Error('Invalid date');
-                    }
-                    return new Intl.DateTimeFormat('el', {
-                        dateStyle: 'full',
-                        timeStyle: 'short'
-                    }).format(date);
-                } catch (error) {
-                    console.warn('Date formatting failed:', error);
-                    return dateString;
-                }
-            }
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Stats Bar -->
+        <div id="stats" class="stats-bar">
+            <span>Φόρτωση στατιστικών...</span>
+        </div>
 
-            /**
-             * Escape HTML to prevent XSS
-             * @param {string} str - String to escape
-             * @returns {string} Escaped string
-             */
-            escapeHtml(str) {
-                const div = document.createElement('div');
-                div.textContent = str;
-                return div.innerHTML;
-            }
+        <!-- Controls Bar -->
+        <div class="controls-bar">
+            <div class="controls-grid">
+                <!-- Search -->
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="search-input" 
+                        placeholder="Αναζήτηση άρθρων..."
+                        aria-label="Αναζήτηση άρθρων"
+                    >
+                </div>
 
-            /**
-             * Show notification to user
-             * @param {string} message - Message to show
-             * @param {string} type - Notification type
-             */
-            showNotification(message, type = 'info') {
-                const notification = document.createElement('div');
-                notification.className = `fixed bottom-4 right-4 px-6 py-4 rounded-lg shadow-lg ${
-                    this.getNotificationClass(type)
-                }`;
-                notification.textContent = message;
+                <!-- Category Filter -->
+                <div class="select-wrapper">
+                    <select id="categoryFilter" aria-label="Φίλτρο κατηγορίας">
+                        <option value="all">Όλες οι κατηγορίες</option>
+                        <option value="government">🏛️ Κυβερνητικές Ανακοινώσεις</option>
+                        <option value="news">📰 Φορολογικά Νέα</option>
+                        <option value="business">💼 Επιχειρηματικά</option>
+                        <option value="law">⚖️ Νομοθεσία</option>
+                    </select>
+                </div>
 
-                document.body.appendChild(notification);
-                setTimeout(() => notification.remove(), 5000);
-            }
+                <!-- Feed Filter -->
+                <div class="select-wrapper">
+                    <select id="feedFilter" aria-label="Φίλτρο πηγής">
+                        <option value="all">Όλες οι πηγές</option>
+                        <option value="aade">AADE</option>
+                        <option value="taxheaven">Tax Heaven</option>
+                        <option value="forin">Forin.gr</option>
+                        <option value="ekathimerini">eKathimerini</option>
+                        <option value="greekreporter">Greek Reporter</option>
+                    </select>
+                </div>
 
-            /**
-             * Get notification CSS class
-             * @param {string} type - Notification type
-             * @returns {string} CSS class
-             */
-            getNotificationClass(type) {
-                const classes = {
-                    success: 'bg-green-500 text-white',
-                    error: 'bg-red-500 text-white',
-                    warning: 'bg-yellow-500 text-white',
-                    info: 'bg-blue-500 text-white'
-                };
-                return classes[type] || classes.info;
-            }
-        }
+                <!-- Sort -->
+                <div class="select-wrapper">
+                    <select id="sortSelect" aria-label="Ταξινόμηση">
+                        <option value="date-desc">📅 Νεότερα πρώτα</option>
+                        <option value="date-asc">📅 Παλαιότερα πρώτα</option>
+                        <option value="title-asc">🔤 Τίτλος (Α-Ω)</option>
+                        <option value="title-desc">🔤 Τίτλος (Ω-Α)</option>
+                        <option value="priority">⭐ Προτεραιότητα</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
-        // Initialize the application
-        const app = new NewsHub();
-    </script>
+        <!-- Articles Container -->
+        <div id="articlesContainer" class="articles-grid">
+            <div class="loading-state">
+                <div class="spinner"></div>
+                <p>Φόρτωση φορολογικών ειδήσεων...</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>© 2024 Greek Tax News Hub | Κεντρικός Κόμβος Φορολογικών Ειδήσεων</p>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem;">
+                Πηγές: AADE, Tax Heaven, Forin.gr, eKathimerini, Greek Reporter
+            </p>
+        </div>
+    </footer>
+
+    <!-- Notifications Container -->
+    <div id="notifications" class="notifications-container"></div>
+
+    <!-- Scripts -->
+    <script src="assets/js/config.js"></script>
+    <script src="assets/js/storage.js"></script>
+    <script src="assets/js/rss-parser.js"></script>
+    <script src="assets/js/app.js"></script>
 </body>
 </html>

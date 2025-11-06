@@ -1,0 +1,33 @@
+{
+  "name": "greek-tax-news-hub",
+  "version": "1.0.0",
+  "description": "Production-ready RSS news aggregator for Greek tax updates from official sources",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8000",
+    "serve": "npx serve . -p 8000",
+    "dev": "python3 -m http.server 8000"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tonygeo10/greek-tax-news-hub.git"
+  },
+  "keywords": [
+    "greek-tax",
+    "rss",
+    "news-aggregator",
+    "aade",
+    "taxheaven",
+    "forin",
+    "javascript",
+    "github-pages",
+    "greek-taxation",
+    "tax-news"
+  ],
+  "author": "tonygeo10",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tonygeo10/greek-tax-news-hub/issues"
+  },
+  "homepage": "https://tonygeo10.github.io/greek-tax-news-hub/"
+}
