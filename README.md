@@ -146,7 +146,7 @@ Feeds are configured in `backend/config/feeds.json`. Each feed has the following
 
 ## Adding New Feeds
 
-To add a new feed, edit `backend/config/feeds.json`:
+To add a new feed, edit `backend/backend/config/feeds.json`:
 
 1. Add a new entry to the `feeds` array
 2. Assign a unique `FeedID`
@@ -178,7 +178,7 @@ The application can work with or without a database. If a database is configured
 
 ### Schema
 
-Run `backend/sql/schema.sql` to create the required tables:
+Run `backend/backend/sql/schema.sql` to create the required tables:
 - `RSSFeeds`: Stores feed configurations
 - `Articles`: Stores cached articles with feed relationships
 
