@@ -396,6 +396,8 @@ app.get('/api/feeds', async (req, res) => {
     }
 });
 
+// Note: /api/articles/all must come before /api/articles/:feedId
+// to prevent "all" from being interpreted as a feedId parameter
 app.get('/api/articles/all', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
