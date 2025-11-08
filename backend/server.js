@@ -4,6 +4,8 @@ const sql = require('mssql');
 const cors = require('cors');
 const Parser = require('rss-parser');
 const winston = require('winston');
+const fs = require('fs');
+const path = require('path');
 
 // Configure Winston logger
 const logger = winston.createLogger({
@@ -30,6 +32,18 @@ const parser = new Parser({
     timeout: 10000,
     maxRedirects: 5,
 });
+
+// Load feeds configuration
+let feedsConfig = { feeds: [] };
+try {
+    const feedsPath = path.join(__dirname, 'config', 'feeds.json');
+    const feedsData = fs.readFileSync(feedsPath, 'utf8');
+    feedsConfig = JSON.parse(feedsData);
+    logger.info(`✅ Loaded ${feedsConfig.feeds.length} feeds from configuration`);
+} catch (err) {
+    logger.error('❌ Failed to load feeds configuration:', err);
+    // Continue with empty config - fallback to database
+}
 
 app.use(cors());
 app.use(express.json());
@@ -130,6 +144,161 @@ function parseDate(dateString) {
     }
 }
 
+/**
+ * Fetches articles from a specific feed with pagination
+ * @param {number} feedId - The feed ID
+ * @param {number} page - Page number
+ * @param {number} pageSize - Items per page
+ * @returns {Promise<Object>} - Articles and pagination info
+ */
+async function fetchArticlesFromFeed(feedId, page = 1, pageSize = 20) {
+    const offset = (page - 1) * pageSize;
+    
+    // Try database first
+    if (pool) {
+        try {
+            const result = await pool.request()
+                .input('feedId', sql.Int, feedId)
+                .input('pageSize', sql.Int, pageSize)
+                .input('offset', sql.Int, offset)
+                .query(`
+                    SELECT * FROM (
+                        SELECT *, ROW_NUMBER() OVER (ORDER BY PublishDate DESC) as RowNum
+                        FROM Articles
+                        WHERE FeedID = @feedId
+                    ) AS Paginated
+                    WHERE RowNum > @offset AND RowNum <= (@offset + @pageSize)
+                `);
+
+            const totalCount = await pool.request()
+                .input('feedId', sql.Int, feedId)
+                .query('SELECT COUNT(*) as total FROM Articles WHERE FeedID = @feedId');
+
+            return {
+                articles: result.recordset,
+                pagination: {
+                    page,
+                    pageSize,
+                    totalItems: totalCount.recordset[0].total,
+                    totalPages: Math.ceil(totalCount.recordset[0].total / pageSize)
+                }
+            };
+        } catch (dbErr) {
+            logger.warn(`Database fetch failed for feed ${feedId}, falling back to RSS`, dbErr);
+        }
+    }
+    
+    // Fallback to RSS fetch
+    const feed = feedsConfig.feeds.find(f => f.FeedID === feedId);
+    if (!feed) {
+        throw new Error(`Feed ${feedId} not found`);
+    }
+    
+    const rssFeed = await parser.parseURL(feed.FeedURL);
+    const articles = rssFeed.items.map(item => ({
+        title: item.title,
+        description: item.contentSnippet || item.content || '',
+        link: item.link,
+        pubDate: parseDate(item.pubDate || item.isoDate),
+        source: 'rss',
+        feedName: feed.FeedName,
+        category: feed.Category
+    }));
+
+    const paginatedArticles = articles.slice(offset, offset + pageSize);
+
+    return {
+        articles: paginatedArticles,
+        pagination: {
+            page,
+            pageSize,
+            totalItems: articles.length,
+            totalPages: Math.ceil(articles.length / pageSize)
+        }
+    };
+}
+
+/**
+ * Fetches articles from all active feeds
+ * @param {number} page - Page number
+ * @param {number} pageSize - Items per page
+ * @returns {Promise<Object>} - Articles and pagination info
+ */
+async function fetchArticlesFromAllFeeds(page = 1, pageSize = 20) {
+    const offset = (page - 1) * pageSize;
+    
+    // Try database first
+    if (pool) {
+        try {
+            const result = await pool.request()
+                .input('pageSize', sql.Int, pageSize)
+                .input('offset', sql.Int, offset)
+                .query(`
+                    SELECT a.*, f.FeedName, f.Category FROM (
+                        SELECT *, ROW_NUMBER() OVER (ORDER BY PublishDate DESC) as RowNum
+                        FROM Articles
+                        WHERE FeedID IN (SELECT FeedID FROM RSSFeeds WHERE IsActive = 1)
+                    ) AS a
+                    INNER JOIN RSSFeeds f ON a.FeedID = f.FeedID
+                    WHERE a.RowNum > @offset AND a.RowNum <= (@offset + @pageSize)
+                `);
+
+            const totalCount = await pool.request()
+                .query('SELECT COUNT(*) as total FROM Articles WHERE FeedID IN (SELECT FeedID FROM RSSFeeds WHERE IsActive = 1)');
+
+            return {
+                articles: result.recordset,
+                pagination: {
+                    page,
+                    pageSize,
+                    totalItems: totalCount.recordset[0].total,
+                    totalPages: Math.ceil(totalCount.recordset[0].total / pageSize)
+                }
+            };
+        } catch (dbErr) {
+            logger.warn('Database fetch failed for all feeds, falling back to RSS', dbErr);
+        }
+    }
+    
+    // Fallback to RSS fetch from all active feeds
+    const activeFeeds = feedsConfig.feeds.filter(f => f.IsActive);
+    const allArticles = [];
+    
+    for (const feed of activeFeeds) {
+        try {
+            const rssFeed = await parser.parseURL(feed.FeedURL);
+            const articles = rssFeed.items.map(item => ({
+                title: item.title,
+                description: item.contentSnippet || item.content || '',
+                link: item.link,
+                pubDate: parseDate(item.pubDate || item.isoDate),
+                source: 'rss',
+                feedName: feed.FeedName,
+                category: feed.Category,
+                feedId: feed.FeedID
+            }));
+            allArticles.push(...articles);
+        } catch (err) {
+            logger.error(`Failed to fetch feed ${feed.FeedName}:`, err);
+        }
+    }
+    
+    // Sort by date
+    allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+    
+    const paginatedArticles = allArticles.slice(offset, offset + pageSize);
+
+    return {
+        articles: paginatedArticles,
+        pagination: {
+            page,
+            pageSize,
+            totalItems: allArticles.length,
+            totalPages: Math.ceil(allArticles.length / pageSize)
+        }
+    };
+}
+
 // API Routes with improved error handling and pagination
 app.get('/api/health', async (req, res) => {
     try {
@@ -214,17 +383,51 @@ app.get('/api/feeds', async (req, res) => {
             const result = await pool.request().query('SELECT * FROM RSSFeeds WHERE IsActive = 1');
             res.json(result.recordset);
         } else {
-            res.json([{
-                FeedID: 1,
-                FeedName: 'AADE - Δελτία Τύπου',
-                FeedURL: 'https://www.aade.gr/deltia-typoy-anakoinoseis?format=rss',
-                Category: 'Tax Authority'
-            }]);
+            // Fallback to configuration file
+            const activeFeeds = feedsConfig.feeds.filter(f => f.IsActive);
+            res.json(activeFeeds);
         }
     } catch (err) {
         logger.error('Error fetching feeds:', err);
         res.status(500).json({ 
             error: 'Failed to fetch feeds', 
+            details: err.message 
+        });
+    }
+});
+
+app.get('/api/articles/all', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 20;
+
+        const result = await fetchArticlesFromAllFeeds(page, pageSize);
+        res.json(result);
+    } catch (err) {
+        logger.error('Error fetching all articles:', err);
+        res.status(500).json({ 
+            error: 'Failed to fetch articles', 
+            details: err.message 
+        });
+    }
+});
+
+app.get('/api/articles/:feedId', async (req, res) => {
+    try {
+        const feedId = parseInt(req.params.feedId);
+        const page = parseInt(req.query.page) || 1;
+        const pageSize = parseInt(req.query.pageSize) || 20;
+
+        if (isNaN(feedId)) {
+            return res.status(400).json({ error: 'Invalid feed ID' });
+        }
+
+        const result = await fetchArticlesFromFeed(feedId, page, pageSize);
+        res.json(result);
+    } catch (err) {
+        logger.error(`Error fetching articles for feed ${req.params.feedId}:`, err);
+        res.status(500).json({ 
+            error: 'Failed to fetch articles', 
             details: err.message 
         });
     }
