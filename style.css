@@ -1,101 +1,42 @@
 body {
-  font-family: Arial, sans-serif;
+  font-family: Arial;
+  background: #f5f5f5;
   margin: 0;
-  background: #0f172a;
-  color: white;
+  padding: 20px;
 }
 
-header {
-  background: #1e293b;
-  padding: 20px;
+h1 {
   text-align: center;
 }
 
-header h1 {
-  margin: 0 0 10px;
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
-select, button {
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-}
-
-.news-container {
-  max-width: 900px;
-  margin: 30px auto;
-  padding: 0 15px;
-}
-
 .news-card {
-  background: #1e293b;
+  background: white;
   padding: 15px;
   margin-bottom: 15px;
-  border-radius: 10px;
-  transition: 0.3s;
+  border-radius: 8px;
 }
 
-.news-card:hover {
-  background: #334155;
+.news-card h3 {
+  margin: 0 0 10px 0;
 }
 
 .news-card a {
-  color: #3b82f6;
   text-decoration: none;
+  color: blue;
 }
 
-.news-card a:hover {
-  text-decoration: underline;
+.filters {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-.news-meta {
-  font-size: 13px;
-  opacity: 0.7;
+button {
+  padding: 8px 12px;
+  margin: 5px;
+  cursor: pointer;
 }
 
 .pagination {
   text-align: center;
-  margin: 30px 0;
-}
-
-.pagination button {
-  background: #1e293b;
-  border: none;
-  padding: 8px 14px;
-  margin: 5px;
-  border-radius: 8px;
-  color: white;
-  cursor: pointer;
-}
-
-.pagination button:hover {
-  background: #334155;
-}
-
-.pagination button.active {
-  background: #2563eb;
-}
-
-.pagination button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-.loader {
-  text-align: center;
-  margin: 20px;
-  display: none;
-}
-
-@media (max-width: 600px) {
-  .controls {
-    flex-direction: column;
-  }
+  margin-top: 20px;
 }
