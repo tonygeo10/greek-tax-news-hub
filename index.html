@@ -1,33 +1,30 @@
 <!DOCTYPE html>
 <html lang="el">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
   <title>Greek Tax News Hub</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <header>
-    <h1>Greek Tax News Hub</h1>
-    <div class="controls">
-      <select id="categoryFilter">
-        <option value="">Όλες οι κατηγορίες</option>
-        <option value="soft_new">Νέα</option>
-        <option value="soft_law">Νομοθεσία</option>
-        <option value="soft_art">Άρθρα</option>
-      </select>
+<h1>Greek Tax News Hub</h1>
 
-      <button onclick="toggleInfinite()">Infinite Scroll</button>
-    </div>
-  </header>
+<div class="filters">
+  <button onclick="loadArticles('')">Όλα</button>
+  <button onclick="loadArticles('news')">Νέα</button>
+  <button onclick="loadArticles('law')">Νομοθεσία</button>
+  <button onclick="loadArticles('articles')">Άρθρα</button>
+  <button onclick="loadArticles('finance')">Οικονομία</button>
+</div>
 
-  <div id="news" class="news-container"></div>
+<div id="news-container"></div>
 
-  <div id="pagination" class="pagination"></div>
+<div class="pagination">
+  <button id="prevBtn" onclick="changePage(-1)">Προηγούμενη</button>
+  <span id="pageInfo"></span>
+  <button id="nextBtn" onclick="changePage(1)">Επόμενη</button>
+</div>
 
-  <div id="loader" class="loader">Φόρτωση...</div>
-
-  <script src="app.js"></script>
+<script src="script.js"></script>
 </body>
 </html>
