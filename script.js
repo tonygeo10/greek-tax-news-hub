@@ -1,30 +1,49 @@
-const toggle = document.getElementById("themeToggle");
-const body = document.body;
+const API = "https://greek-tax-api-1.onrender.com/news";
 
-toggle.addEventListener("click", () => {
-  body.classList.toggle("dark");
-  toggle.textContent = body.classList.contains("dark") ? "☀️" : "🌙";
-});
+let currentPage = 1;
+let totalPages = 1;
 
-/* Example rendering */
-function renderNews(news) {
-  const container = document.getElementById("newsContainer");
+async function fetchNews(page = 1) {
+  const res = await fetch(`${API}?page=${page}`);
+  const data = await res.json();
+
+  const container = document.getElementById("news-container");
   container.innerHTML = "";
 
-  news.forEach(item => {
-    container.innerHTML += `
-      <div class="card">
-        <a href="${item.link}" target="_blank">${item.title}</a>
+  data.articles.forEach(article => {
+    const card = document.createElement("div");
+    card.className = "card";
 
-        <div class="meta-row">
-          <span class="badge">${item.category || "general"}</span>
-
-          <div class="source">
-            <img src="https://www.google.com/s2/favicons?domain=${new URL(item.link).hostname}">
-            ${item.source}
-          </div>
-        </div>
-      </div>
+    card.innerHTML = `
+      <div class="badge">${article.category || "General"}</div>
+      <h3>${article.title}</h3>
+      <div class="meta">${article.source}</div>
+      <a href="${article.link}" target="_blank">Διαβάστε περισσότερα →</a>
     `;
+
+    container.appendChild(card);
   });
+
+  currentPage = data.page;
+  totalPages = data.total_pages;
+
+  document.getElementById("pageInfo").innerText =
+    `Σελίδα ${currentPage} από ${totalPages}`;
+
+  document.getElementById("prevBtn").disabled = currentPage === 1;
+  document.getElementById("nextBtn").disabled = currentPage === totalPages;
 }
+
+document.getElementById("prevBtn").onclick = () => {
+  if (currentPage > 1) fetchNews(currentPage - 1);
+};
+
+document.getElementById("nextBtn").onclick = () => {
+  if (currentPage < totalPages) fetchNews(currentPage + 1);
+};
+
+document.getElementById("darkToggle").onclick = () => {
+  document.body.classList.toggle("light");
+};
+
+fetchNews();
