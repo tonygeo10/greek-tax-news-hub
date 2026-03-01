@@ -1,4 +1,4 @@
-const API = "https://greek-tax-api-1.onrender.com/news";
+const API = "https://greek-tax-api-1.onrender.com/api/articles";
 
 let currentPage = 1;
 let totalPages = 1;
