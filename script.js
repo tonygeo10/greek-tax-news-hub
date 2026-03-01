@@ -1,47 +1,30 @@
- const API_URL = "https://greek-tax-api-1.onrender.com/api/articles";
+const toggle = document.getElementById("themeToggle");
+const body = document.body;
 
-let currentPage = 1;
-let currentCategory = "";
+toggle.addEventListener("click", () => {
+  body.classList.toggle("dark");
+  toggle.textContent = body.classList.contains("dark") ? "☀️" : "🌙";
+});
 
-async function loadArticles(category = currentCategory) {
-  currentCategory = category;
-  currentPage = 1;
-  fetchArticles();
-}
-
-async function fetchArticles() {
-  let url = `${API_URL}?page=${currentPage}`;
-  if (currentCategory) {
-    url += `&category=${currentCategory}`;
-  }
-
-  const response = await fetch(url);
-  const data = await response.json();
-
-  const container = document.getElementById("news-container");
+/* Example rendering */
+function renderNews(news) {
+  const container = document.getElementById("newsContainer");
   container.innerHTML = "";
 
-  data.forEach(article => {
-    const div = document.createElement("div");
-    div.className = "news-card";
+  news.forEach(item => {
+    container.innerHTML += `
+      <div class="card">
+        <a href="${item.link}" target="_blank">${item.title}</a>
 
-    div.innerHTML = `
-      <h3>${article.title}</h3>
-      <p>${article.category} | ${article.source}</p>
-      <a href="${article.link}" target="_blank">Διάβασε περισσότερα</a>
+        <div class="meta-row">
+          <span class="badge">${item.category || "general"}</span>
+
+          <div class="source">
+            <img src="https://www.google.com/s2/favicons?domain=${new URL(item.link).hostname}">
+            ${item.source}
+          </div>
+        </div>
+      </div>
     `;
-
-    container.appendChild(div);
   });
-
-  document.getElementById("pageInfo").innerText = `Σελίδα ${currentPage}`;
-  document.getElementById("prevBtn").disabled = currentPage === 1;
-  document.getElementById("nextBtn").disabled = data.length < 10;
 }
-
-function changePage(step) {
-  currentPage += step;
-  fetchArticles();
-}
-
-fetchArticles();
