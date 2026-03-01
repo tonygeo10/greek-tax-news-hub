@@ -1,151 +1,33 @@
 <!DOCTYPE html>
 <html lang="el">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Greek Tax News Hub | ΑΑΔΕ Updates</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <style>
-        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .news-card { transition: all 0.2s ease-in-out; border: 1px solid #e5e7eb; }
-        .news-card:hover { transform: translateY(-4px); border-color: #3b82f6; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-        body { background-color: #f8fafc; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Greek Tax News Hub</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <header class="bg-blue-900 text-white shadow-md py-8 mb-6">
-        <div class="container mx-auto px-4 text-center">
-            <h1 class="text-3xl font-extrabold tracking-tight">Greek Tax News Hub</h1>
-            <p class="text-blue-200 mt-2 font-medium">Επίσημες Ανακοινώσεις & Εγκύκλιοι ΑΑΔΕ</p>
-        </div>
-    </header>
 
-    <div class="container mx-auto px-4 max-w-5xl">
-        <div class="flex items-center justify-between mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
-            <div class="flex items-center text-sm text-gray-600">
-                <span class="relative flex h-3 w-3 mr-3">
-                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
-                <span>Κατάσταση: <strong>Σε σύνδεση</strong></span>
-            </div>
-            <div class="text-sm text-gray-500">
-                Τελευταία ενημέρωση: <span id="last-update-time" class="font-bold text-gray-700">Φόρτωση...</span>
-            </div>
-        </div>
+  <header>
+    <h1>Greek Tax News Hub</h1>
+    <div class="controls">
+      <select id="categoryFilter">
+        <option value="">Όλες οι κατηγορίες</option>
+        <option value="soft_new">Νέα</option>
+        <option value="soft_law">Νομοθεσία</option>
+        <option value="soft_art">Άρθρα</option>
+      </select>
 
-        <div id="app" class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-20">
-            <div class="col-span-full flex flex-col items-center py-20">
-                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mb-4"></div>
-                <p class="text-gray-500">Ανάκτηση δεδομένων από ΑΑΔΕ...</p>
-            </div>
-        </div>
+      <button onclick="toggleInfinite()">Infinite Scroll</button>
     </div>
+  </header>
 
-    <script>
-        // --- CONFIGURATION ---
-        // Replace with your actual Render Web Service URL
-      const BASE_URL = 'https://greek-tax-api.onrender.com';
+  <div id="news" class="news-container"></div>
 
-        class NewsHub {
-            constructor() {
-                this.articles = [];
-                this.init();
-            }
+  <div id="pagination" class="pagination"></div>
 
-            async init() {
-                await this.loadArticles();
-            }
+  <div id="loader" class="loader">Φόρτωση...</div>
 
-            async loadArticles() {
-                try {
-                    const response = await fetch(`${BASE_URL}/api/news`);
-                    if (!response.ok) throw new Error('Network response was not ok');
-                    
-                    const data = await response.json();
-                    
-                    // Handle both direct array or object with articles key
-                    this.articles = data.articles || data;
-                    
-                    // Update the "Last Updated" timestamp
-                    if (data.last_updated || (this.articles.length > 0 && this.articles[0].date)) {
-                        const latestDate = data.last_updated || this.articles[0].date;
-                        document.getElementById('last-update-time').innerText = this.formatDate(latestDate);
-                    }
-
-                    this.renderArticles();
-                } catch (error) {
-                    console.error('Fetch error:', error);
-                    this.showError('Παρουσιάστηκε σφάλμα κατά τη φόρτωση των ειδήσεων. Παρακαλώ δοκιμάστε αργότερα.');
-                }
-            }
-
-            renderArticles() {
-                const container = document.getElementById('app');
-                
-                if (!this.articles || this.articles.length === 0) {
-                    container.innerHTML = `<div class="col-span-full text-center py-10 text-gray-500 italic">Δεν βρέθηκαν πρόσφατες ανακοινώσεις.</div>`;
-                    return;
-                }
-
-                container.innerHTML = this.articles.map(article => `
-                    <article class="news-card bg-white rounded-xl p-6 flex flex-col justify-between shadow-sm">
-                        <div>
-                            <div class="flex items-center justify-between mb-4">
-                                <span class="bg-blue-50 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full border border-blue-100">
-                                    ΑΑΔΕ
-                                </span>
-                                <span class="text-gray-400 text-xs font-medium">
-                                    ${this.formatDate(article.date)}
-                                </span>
-                            </div>
-                            <h2 class="text-lg font-bold text-gray-800 leading-snug line-clamp-2">
-                                ${this.escapeHtml(article.title)}
-                            </h2>
-                        </div>
-                        <div class="mt-6 pt-4 border-t border-gray-50 flex items-center justify-between">
-                            <a href="${article.link}" target="_blank" 
-                               class="text-blue-600 font-bold text-sm hover:text-blue-800 inline-flex items-center group transition-all">
-                                Προβολή Εγγράφου
-                                <svg class="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
-                                </svg>
-                            </a>
-                        </div>
-                    </article>
-                `).join('');
-            }
-
-            formatDate(dateString) {
-                if (!dateString) return 'Άγνωστη ημερομηνία';
-                const date = new Date(dateString);
-                return new Intl.DateTimeFormat('el-GR', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                }).format(date);
-            }
-
-            escapeHtml(str) {
-                if (!str) return "";
-                const div = document.createElement('div');
-                div.textContent = str;
-                return div.innerHTML;
-            }
-
-            showError(msg) {
-                document.getElementById('app').innerHTML = `
-                    <div class="col-span-full bg-red-50 border border-red-100 text-red-600 px-6 py-4 rounded-xl text-center font-medium">
-                        ${msg}
-                    </div>
-                `;
-            }
-        }
-
-        // Boot the application
-        const hub = new NewsHub();
-    </script>
+  <script src="app.js"></script>
 </body>
 </html>
