@@ -3,24 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Greek Tax News Hub</title>
+  <title>GR Greek Tax News Hub</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<header id="mainHeader">
-  <div class="header-inner">
-    <div class="logo">
-      🇬🇷 Greek Tax News Hub
-    </div>
-
-    <button id="themeToggle" class="theme-btn">
-      🌙
-    </button>
-  </div>
+<header>
+  <div class="logo">🇬🇷 Greek Tax News Hub</div>
+  <button id="darkToggle">🌙</button>
 </header>
 
-<div class="container" id="newsContainer"></div>
+<main>
+  <div id="news-container" class="news-grid"></div>
+
+  <div class="pagination">
+    <button id="prevBtn">⬅ Προηγούμενη</button>
+    <span id="pageInfo"></span>
+    <button id="nextBtn">Επόμενη ➡</button>
+  </div>
+</main>
 
 <script src="script.js"></script>
 </body>
