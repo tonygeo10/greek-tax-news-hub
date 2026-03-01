@@ -1,29 +1,26 @@
 <!DOCTYPE html>
 <html lang="el">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Greek Tax News Hub</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<h1>Greek Tax News Hub</h1>
+<header id="mainHeader">
+  <div class="header-inner">
+    <div class="logo">
+      🇬🇷 Greek Tax News Hub
+    </div>
 
-<div class="filters">
-  <button onclick="loadArticles('')">Όλα</button>
-  <button onclick="loadArticles('news')">Νέα</button>
-  <button onclick="loadArticles('law')">Νομοθεσία</button>
-  <button onclick="loadArticles('articles')">Άρθρα</button>
-  <button onclick="loadArticles('finance')">Οικονομία</button>
-</div>
+    <button id="themeToggle" class="theme-btn">
+      🌙
+    </button>
+  </div>
+</header>
 
-<div id="news-container"></div>
-
-<div class="pagination">
-  <button id="prevBtn" onclick="changePage(-1)">Προηγούμενη</button>
-  <span id="pageInfo"></span>
-  <button id="nextBtn" onclick="changePage(1)">Επόμενη</button>
-</div>
+<div class="container" id="newsContainer"></div>
 
 <script src="script.js"></script>
 </body>
