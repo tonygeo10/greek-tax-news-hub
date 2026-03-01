@@ -6,7 +6,7 @@ let totalPages = 1;
 async function fetchNews(page = 1) {
   const res = await fetch(`${API}?page=${page}`);
   const data = await res.json();
-
+console.log(data);
   const container = document.getElementById("news-container");
   container.innerHTML = "";
 
