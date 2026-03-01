@@ -1,137 +1,118 @@
 :root {
-  --bg-light: #f4f6f9;
-  --bg-dark: #0f172a;
-  --card-light: rgba(255,255,255,0.6);
-  --card-dark: rgba(30,41,59,0.6);
-  --text-light: #1f2937;
-  --text-dark: #f8fafc;
-  --accent: #2563eb;
+  --bg: #0f172a;
+  --card: rgba(255,255,255,0.05);
+  --text: #ffffff;
+  --accent: #3b82f6;
+}
+
+body.light {
+  --bg: #f5f7fb;
+  --card: rgba(0,0,0,0.05);
+  --text: #111;
 }
 
 body {
   margin: 0;
-  font-family: "Inter", sans-serif;
-  background: var(--bg-light);
-  color: var(--text-light);
-  transition: 0.3s ease;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(-45deg, #1e3a8a, #2563eb, #0f172a);
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  color: var(--text);
 }
 
-/* DARK MODE */
-body.dark {
-  background: var(--bg-dark);
-  color: var(--text-dark);
+@keyframes gradient {
+  0% { background-position: 0% 50% }
+  50% { background-position: 100% 50% }
+  100% { background-position: 0% 50% }
 }
 
-/* ===== HEADER ===== */
 header {
   position: sticky;
   top: 0;
-  z-index: 1000;
-  padding: 15px 20px;
-  backdrop-filter: blur(12px);
-  background: linear-gradient(-45deg, #1e3a8a, #2563eb, #1e40af, #1d4ed8);
-  background-size: 400% 400%;
-  animation: gradientMove 8s ease infinite;
-  color: white;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-}
-
-@keyframes gradientMove {
-  0% {background-position: 0% 50%;}
-  50% {background-position: 100% 50%;}
-  100% {background-position: 0% 50%;}
-}
-
-.header-inner {
-  max-width: 1100px;
-  margin: auto;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  padding: 15px 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-weight: bold;
+  z-index: 100;
 }
 
-.logo {
-  font-weight: 700;
-  font-size: 18px;
-}
-
-.theme-btn {
-  border: none;
-  padding: 6px 12px;
+#darkToggle {
+  background: none;
+  border: 2px solid white;
+  padding: 5px 12px;
   border-radius: 20px;
   cursor: pointer;
-  background: rgba(255,255,255,0.2);
   color: white;
-  font-size: 16px;
 }
 
-/* ===== CONTAINER ===== */
-.container {
+main {
   max-width: 1100px;
   margin: auto;
-  padding: 30px 20px;
+  padding: 40px 20px;
 }
 
-/* ===== GLASS CARD ===== */
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 25px;
+}
+
 .card {
-  backdrop-filter: blur(14px);
-  border-radius: 14px;
+  background: var(--card);
+  backdrop-filter: blur(12px);
+  border-radius: 15px;
   padding: 20px;
-  margin-bottom: 15px;
-  transition: 0.2s ease;
-}
-
-body:not(.dark) .card {
-  background: var(--card-light);
-}
-
-body.dark .card {
-  background: var(--card-dark);
+  transition: 0.3s;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
+  background: rgba(255,255,255,0.1);
 }
 
-/* ===== TITLE ===== */
+.card h3 {
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+
+.meta {
+  font-size: 13px;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 12px;
+  background: var(--accent);
+  color: white;
+  margin-bottom: 10px;
+}
+
 .card a {
-  font-size: 16px;
-  font-weight: 600;
+  margin-top: auto;
   text-decoration: none;
   color: var(--accent);
+  font-weight: bold;
 }
 
-/* ===== META ROW ===== */
-.meta-row {
-  margin-top: 10px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
+.pagination {
+  margin-top: 40px;
+  text-align: center;
 }
 
-/* ===== CATEGORY BADGE ===== */
-.badge {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  background: rgba(37,99,235,0.15);
-  color: var(--accent);
-}
-
-/* ===== SOURCE LOGO ===== */
-.source {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-.source img {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
+.pagination button {
+  padding: 8px 15px;
+  margin: 0 5px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
 }
