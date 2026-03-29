@@ -1,0 +1,88 @@
+{
+  "feeds": [
+    {
+      "FeedID": 1,
+      "FeedName": "AADE - Δελτία Τύπου",
+      "FeedURL": "https://www.aade.gr/deltia-typoy-anakoinoseis?format=rss",
+      "Category": "Tax Authority",
+      "IsActive": true
+    },
+    {
+      "FeedID": 2,
+      "FeedName": "Newsbomb.gr",
+      "FeedURL": "https://www.newsbomb.gr/?format=feed&type=rss",
+      "Category": "General News",
+      "IsActive": true
+    },
+    {
+      "FeedID": 3,
+      "FeedName": "Alfavita.gr",
+      "FeedURL": "https://www.alfavita.gr/rss.xml",
+      "Category": "General News",
+      "IsActive": true
+    },
+    {
+      "FeedID": 4,
+      "FeedName": "ERTNews.gr",
+      "FeedURL": "https://www.ertnews.gr/feed/",
+      "Category": "General News",
+      "IsActive": true
+    },
+    {
+      "FeedID": 5,
+      "FeedName": "Tanea.gr",
+      "FeedURL": "https://www.tanea.gr/feed/",
+      "Category": "General News",
+      "IsActive": true
+    },
+    {
+      "FeedID": 6,
+      "FeedName": "DNews.gr",
+      "FeedURL": "https://www.dnews.gr/feed",
+      "Category": "General News",
+      "IsActive": true
+    },
+    {
+      "FeedID": 7,
+      "FeedName": "TaxHeaven - New Content",
+      "FeedURL": "https://www.taxheaven.gr/bibliothiki/soft/xml/soft_new.xml",
+      "Category": "Tax News",
+      "IsActive": true
+    },
+    {
+      "FeedID": 8,
+      "FeedName": "TaxHeaven - Laws",
+      "FeedURL": "https://www.taxheaven.gr/bibliothiki/soft/xml/soft_law.xml",
+      "Category": "Tax News",
+      "IsActive": true
+    },
+    {
+      "FeedID": 9,
+      "FeedName": "TaxHeaven - Legal Content",
+      "FeedURL": "https://www.taxheaven.gr/bibliothiki/soft/xml/soft_lawl.xml",
+      "Category": "Tax News",
+      "IsActive": true
+    },
+    {
+      "FeedID": 10,
+      "FeedName": "TaxHeaven - Data/Info",
+      "FeedURL": "https://www.taxheaven.gr/bibliothiki/soft/xml/soft_dat.xml",
+      "Category": "Tax News",
+      "IsActive": true
+    },
+    {
+      "FeedID": 11,
+      "FeedName": "TaxHeaven - Articles",
+      "FeedURL": "https://www.taxheaven.gr/bibliothiki/soft/xml/soft_art.xml",
+      "Category": "Tax News",
+      "IsActive": true
+    },
+    {
+      "FeedID": 12,
+      "FeedName": "TaxHeaven - Forum",
+      "FeedURL": "https://www.taxheaven.gr/bibliothiki/soft/xml/soft_forum.xml",
+      "Category": "Tax News",
+      "IsActive": true
+    }
+  ]
+}
